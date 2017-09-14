@@ -1,0 +1,71 @@
+{
+    "incidentmanagertype": 0,
+    "filemanagertype": 0,
+    "dynamodb": {
+        "region": "us-east-1"
+    },
+    "fileconfig" : {
+        "path": ""
+    },
+    "s3config": {
+        "region": "us-east-1",
+        "bucket": "jr-incident-test-1"
+    },
+    "webhooks": {
+        "addedhooks":
+        [
+            {
+		        "method": "PUT",
+                "url": "http://34.202.235.3:9000/sonaemail/v1/send",
+                "body":
+		        {
+		            "items":
+		            [
+		                {"key": "incident", "value": "id", "substitute": true},
+		                {"key": "subject", "value": "Incident Created", "substitute": false},
+                        {"key": "body", "value": "New Incident Created by {{reporter}} with description {{description}}.", "substitute": true},
+                        {"key": "to", "value": "illusionedrealmsbugs@gmail.com", "substitute": false}
+		            ]
+		        }
+            }
+        ],
+        "updatedhooks": 
+        [
+            {
+		        "method": "PUT",
+                "url": "http://34.202.235.3:9000/sonaemail/v1/send",
+                "body":
+		        {
+		            "items":
+		            [
+		                {"key": "incident", "value": "id", "substitute": true},
+		                {"key": "subject", "value": "Incident Updated", "substitute": false},
+                        {"key": "body", "value": "Incident {{id}} updated with description {{description}} and state {{state}}.", "substitute": true},
+                        {"key": "to", "value": "illusionedrealmsbugs@gmail.com", "substitute": false}
+		            ]
+		        }
+            }
+        ],
+        "attachedhooks": 
+        [
+            {
+		        "method": "PUT",
+                "url": "http://34.202.235.3:9000/sonaemail/v1/send",
+                "body":
+		        {
+		            "items":
+		            [
+		                {"key": "incident", "value": "id", "substitute": true},
+		                {"key": "subject", "value": "Attachment added", "substitute": false},
+                        {"key": "body", "value": "{{filename}} Has been attached to Incident {{id}}", "substitute": true},
+                        {"key": "to", "value": "illusionedrealmsbugs@gmail.com", "substitute": false}
+		            ]
+		        }
+            }
+        ]
+    },
+    "logging": {
+        "enabled": true,
+        "path": "C:/Users/Jeff"
+    }
+}

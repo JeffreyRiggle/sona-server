@@ -1,7 +1,7 @@
 The Sona Project
 ================
 
-Sona (Support Oriented Notification Application) is a soon to be open-source project. This project is intended to provide a simple and easy to use web service that allows for the creation and management of incidents.
+Sona (Support Oriented Notification Application) is a open-source project. This project is intended to provide a simple and easy to use web service that allows for the creation and management of incidents.
 
 # Sona
 

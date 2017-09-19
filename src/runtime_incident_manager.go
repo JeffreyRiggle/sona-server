@@ -79,10 +79,7 @@ func (manager RuntimeIncidentManager) RemoveAttachment(incidentId int, fileName 
 
 	for i, v := range val {
 		if v.FileName == fileName {
-			logManager.LogPrintf("Found filename %v", fileName)
-			val = append(val[:i], val[i+1:]...)
-			logManager.LogPrintf("New Slice %v", val)
-			manager.Attachments[incidentId] = val
+			manager.Attachments[incidentId] = append(val[:i], val[i+1:]...)
 			return true
 		}
 	}

@@ -28,6 +28,10 @@ func (manager FakeFileManager) LoadFile(incident string, fileName string) (io.Re
 	return nil, nil, true, nil
 }
 
+func (manager FakeFileManager) DeleteFile(incident string, fileName string) bool {
+	return true
+}
+
 func setup() {
 	if router == nil {
 		router = NewRouter()
@@ -287,5 +291,63 @@ func TestUploadAttachmentWithNonExistantId(t *testing.T) {
 
 	if w.Result().StatusCode != 404 {
 		t.Errorf("Expected 404 status code got %v", w.Result())
+	}
+}
+
+func TestDeleteAttachmentWithInvalidId(t *testing.T) {
+	setup()
+	incidentManager.AddIncident(&Incident{"Incident", 0, "Test", "Tester", "open", make(map[string]string, 0)})
+
+	r, _ := http.NewRequest("DELETE", "/sona/v1/zero/attachment/test.jpg", nil)
+	w := httptest.NewRecorder()
+
+	router.ServeHTTP(w, r)
+
+	if w.Result().StatusCode != 400 {
+		t.Errorf("Expected 400 status code got %v", w.Result())
+	}
+}
+
+func TestDeleteAttachmentWithNonExistantIncidentId(t *testing.T) {
+	setup()
+	incidentManager.AddIncident(&Incident{"Incident", 0, "Test", "Tester", "open", make(map[string]string, 0)})
+
+	r, _ := http.NewRequest("DELETE", "/sona/v1/3/attachment/test.jpg", nil)
+	w := httptest.NewRecorder()
+
+	router.ServeHTTP(w, r)
+
+	if w.Result().StatusCode != 404 {
+		t.Errorf("Expected 404 status code got %v", w.Result())
+	}
+}
+
+func TestDeleteAttachmentWithNonExistantAttachmentId(t *testing.T) {
+	setup()
+	incidentManager.AddIncident(&Incident{"Incident", 0, "Test", "Tester", "open", make(map[string]string, 0)})
+	incidentManager.AddAttachment(0, Attachment{"somefile.png", "2009-11-10T23:00:00Z"})
+
+	r, _ := http.NewRequest("DELETE", "/sona/v1/0/attachment/test.jpg", nil)
+	w := httptest.NewRecorder()
+
+	router.ServeHTTP(w, r)
+
+	if w.Result().StatusCode != 404 {
+		t.Errorf("Expected 404 status code got %v", w.Result())
+	}
+}
+
+func TestDeleteAttachment(t *testing.T) {
+	setup()
+	incidentManager.AddIncident(&Incident{"Incident", 0, "Test", "Tester", "open", make(map[string]string, 0)})
+	incidentManager.AddAttachment(0, Attachment{"test.jpg", "2009-11-10T23:00:00Z"})
+
+	r, _ := http.NewRequest("DELETE", "/sona/v1/0/attachment/test.jpg", nil)
+	w := httptest.NewRecorder()
+
+	router.ServeHTTP(w, r)
+
+	if w.Result().StatusCode != 200 {
+		t.Errorf("Expected 200 status code got %v", w.Result())
 	}
 }

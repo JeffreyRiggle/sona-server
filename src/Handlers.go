@@ -236,7 +236,7 @@ func HandleRemoveAttachment(w http.ResponseWriter, r *http.Request) {
 	incidentId, err := strconv.Atoi(incident)
 
 	if err != nil {
-		logManager.LogPrintf("Error converting incidentId %v", err)
+		logManager.LogPrintf("Error converting incidentId %v\n", err)
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
@@ -244,7 +244,7 @@ func HandleRemoveAttachment(w http.ResponseWriter, r *http.Request) {
 	_, ok := incidentManager.GetIncident(incidentId)
 
 	if !ok {
-		logManager.LogPrintf("Got Invalid attachment request for %v.", incidentId)
+		logManager.LogPrintf("Got Invalid attachment request for %v.\n", incidentId)
 		w.WriteHeader(http.StatusNotFound)
 		return
 	}
@@ -256,8 +256,30 @@ func HandleRemoveAttachment(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	attachments, success := incidentManager.GetAttachments(incidentId)
+
+	if !success {
+		logManager.LogFatalf("Unable to get attachments for incident %v.\n", incidentId)
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	found := false
+	for _, v := range attachments {
+		if v.FileName == attachmentId {
+			found = true
+			break
+		}
+	}
+
+	if !found {
+		logManager.LogPrintf("Got invalid attachment request for attachment id %v.\n", attachmentId)
+		w.WriteHeader(http.StatusNotFound)
+		return
+	}
+
 	if !incidentManager.RemoveAttachment(incidentId, attachmentId) {
-		logManager.LogFatal("Unable to remove attachment")
+		logManager.LogFatalln("Unable to remove attachment")
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}

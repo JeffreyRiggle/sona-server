@@ -323,3 +323,76 @@ func TestRemoveAttribute(t *testing.T) {
 			"got", len(retVal2.Attributes))
 	}
 }
+
+func TestRemoveAttachment(t *testing.T) {
+	var manager = RuntimeIncidentManager{make(map[int]*Incident, 0), make(map[int][]Attachment, 0)}
+	var incident = Incident{"Incident", 0, "Some Description", "Someone", "Open", make(map[string]string, 0)}
+	manager.AddIncident(&incident)
+
+	var attach1 = Attachment{"testfile.jpg", "2009-11-10T23:00:00Z"}
+	var attach2 = Attachment{"testfile2.jpg", "2009-10-10T23:00:00Z"}
+	var attach3 = Attachment{"testfile3.jpg", "2009-12-10T23:00:00Z"}
+	pass1 := manager.AddAttachment(0, attach1)
+	pass2 := manager.AddAttachment(0, attach2)
+	pass3 := manager.AddAttachment(0, attach3)
+
+	if !pass1 {
+		t.Error(
+			"For", pass1,
+			"expected", true,
+			"got", pass1)
+	}
+
+	if !pass2 {
+		t.Error(
+			"For", pass2,
+			"expected", true,
+			"got", pass2)
+	}
+
+	if !pass3 {
+		t.Error(
+			"For", pass3,
+			"expected", true,
+			"got", pass3)
+	}
+
+	pass4 := manager.RemoveAttachment(0, "testfile2.jpg")
+
+	if !pass4 {
+		t.Error(
+			"For", pass4,
+			"expected", true,
+			"got", pass4)
+	}
+
+	retVal, pass5 := manager.GetAttachments(0)
+
+	if !pass5 {
+		t.Error(
+			"For", pass3,
+			"expected", true,
+			"got", pass3)
+	}
+
+	if len(retVal) != 2 {
+		t.Error(
+			"For", retVal,
+			"expected", 2,
+			"got", len(retVal))
+	}
+
+	if retVal[0].FileName != "testfile.jpg" {
+		t.Error(
+			"For", retVal[0],
+			"expected", "testfile.jpg",
+			"got", retVal[0].FileName)
+	}
+
+	if retVal[1].FileName != "testfile3.jpg" {
+		t.Error(
+			"For", retVal[1],
+			"expected", "testfile3.jpg",
+			"got", retVal[1].FileName)
+	}
+}

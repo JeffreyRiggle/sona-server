@@ -184,14 +184,17 @@ func HandleUploadAttachment(w http.ResponseWriter, r *http.Request) {
 
 	logManager.LogPrintf("Attachment uploaded to %v\n.", path)
 	attach := Attachment{handler.Filename, time.Now().Format(time.RFC3339)}
-	if incidentManager.AddAttachment(incidentId, attach) {
-		logManager.LogPrintln("Updated incident with attachment")
-		go hookManager.CallAttachedHooks(incidentId, attach)
-		w.WriteHeader(http.StatusOK)
+	if !incidentManager.AddAttachment(incidentId, attach) {
+		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 
-	w.WriteHeader(http.StatusInternalServerError)
+	logManager.LogPrintln("Updated incident with attachment")
+	go hookManager.CallAttachedHooks(incidentId, attach)
+	w.Header().Set("Content-Type", "application/json;charset=UTF-8")
+	if err := json.NewEncoder(w).Encode(attach); err != nil {
+		panic(err)
+	}
 }
 
 // HandleDownloadAttachment handles the download attachment web request.

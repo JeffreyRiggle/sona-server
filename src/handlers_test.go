@@ -266,6 +266,78 @@ func TestGetIncidentsHandler(t *testing.T) {
 	}
 }
 
+func TestGetAttachmentWithInvalidId(t *testing.T) {
+	setup()
+	incidentManager.AddIncident(&Incident{"Incident", 0, "Test", "Tester", "open", make(map[string]string, 0)})
+
+	r, _ := http.NewRequest("GET", "/sona/v1/zero/attachments", nil)
+	w := httptest.NewRecorder()
+
+	router.ServeHTTP(w, r)
+
+	if w.Result().StatusCode != 400 {
+		t.Errorf("Expected 400 status code got %v", w.Result())
+	}
+}
+
+func TestGetAttachmentsWithNoAttached(t *testing.T) {
+	setup()
+	incidentManager.AddIncident(&Incident{"Incident", 0, "Test", "Tester", "open", make(map[string]string, 0)})
+
+	r, _ := http.NewRequest("GET", "/sona/v1/0/attachments", nil)
+	w := httptest.NewRecorder()
+
+	router.ServeHTTP(w, r)
+
+	if w.Result().StatusCode != 200 {
+		t.Errorf("Expected 200 status code got %v", w.Result())
+	}
+
+	var retVal []Attachment
+	err := json.Unmarshal(w.Body.Bytes(), &retVal)
+	if err != nil {
+		t.Errorf("Failed to convert response %v error %v", w.Body, err)
+	}
+
+	if len(retVal) != 0 {
+		t.Errorf("Expected 0 attachments but got %v", len(retVal))
+	}
+}
+
+func TestGetAttachmentsWithAttached(t *testing.T) {
+	setup()
+	incidentManager.AddIncident(&Incident{"Incident", 0, "Test", "Tester", "open", make(map[string]string, 0)})
+	incidentManager.AddAttachment(0, Attachment{"testfile.png", "2009-11-10T23:00:00Z"})
+	incidentManager.AddAttachment(0, Attachment{"testfile2.jpg", "2009-10-10T23:00:00Z"})
+
+	r, _ := http.NewRequest("GET", "/sona/v1/0/attachments", nil)
+	w := httptest.NewRecorder()
+
+	router.ServeHTTP(w, r)
+
+	if w.Result().StatusCode != 200 {
+		t.Errorf("Expected 200 status code got %v", w.Result())
+	}
+
+	var retVal []Attachment
+	err := json.Unmarshal(w.Body.Bytes(), &retVal)
+	if err != nil {
+		t.Errorf("Failed to convert response %v error %v", w.Body, err)
+	}
+
+	if len(retVal) != 2 {
+		t.Errorf("Expected 2 attachments but got %v", len(retVal))
+	}
+
+	if retVal[0].FileName != "testfile.png" {
+		t.Errorf("Expected first file to be testfile.png but got %v", retVal[0].FileName)
+	}
+
+	if retVal[1].FileName != "testfile2.jpg" {
+		t.Errorf("Expected second file to be testfile2.jpg but got %v", retVal[0].FileName)
+	}
+}
+
 func TestUploadAttachmentWithInvalidId(t *testing.T) {
 	setup()
 	incidentManager.AddIncident(&Incident{"Incident", 0, "Test", "Tester", "open", make(map[string]string, 0)})

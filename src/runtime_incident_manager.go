@@ -66,7 +66,9 @@ func (manager RuntimeIncidentManager) GetAttachments(incidentId int) ([]Attachme
 		return val, true
 	}
 
-	return make([]Attachment, 0), false
+	attachments := make([]Attachment, 0)
+	manager.Attachments[incidentId] = attachments
+	return attachments, true
 }
 
 // RemoveAttachment will find and remove an attachment associated with an incident.

@@ -60,6 +60,12 @@ var routes = Routes{
 		HandleDownloadAttachment,
 	},
 	Route{
+		"RemoveAttachment",
+		"DELETE",
+		"/sona/v1/{incidentId}/attachment/{attachmentId}",
+		HandleRemoveAttachment,
+	},
+	Route{
 		"GetIncidents",
 		"GET",
 		"/sona/v1/incidents",

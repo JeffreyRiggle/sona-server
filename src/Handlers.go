@@ -227,6 +227,44 @@ func HandleDownloadAttachment(w http.ResponseWriter, r *http.Request) {
 	http.ServeContent(w, r, d.Name(), d.ModTime(), f)
 }
 
+func HandleRemoveAttachment(w http.ResponseWriter, r *http.Request) {
+	logManager.LogPrintln("Got remove attachment request.")
+
+	vars := mux.Vars(r)
+
+	incident := vars["incidentId"]
+	incidentId, err := strconv.Atoi(incident)
+
+	if err != nil {
+		logManager.LogPrintf("Error converting incidentId %v", err)
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+
+	_, ok := incidentManager.GetIncident(incidentId)
+
+	if !ok {
+		logManager.LogPrintf("Got Invalid attachment request for %v.", incidentId)
+		w.WriteHeader(http.StatusNotFound)
+		return
+	}
+
+	attachmentId := vars["attachmentId"]
+	if len(attachmentId) <= 0 {
+		logManager.LogPrintln("Invalid attachment requested")
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+
+	if !incidentManager.RemoveAttachment(incidentId, attachmentId) {
+		logManager.LogFatal("Unable to remove attachment")
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	fileManager.DeleteFile(incident, attachmentId)
+}
+
 // HandleGetIncident handles the get incident web request.
 func HandleGetIncident(w http.ResponseWriter, r *http.Request) {
 	logManager.LogPrintln("Got incident state request")

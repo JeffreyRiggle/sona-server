@@ -66,3 +66,20 @@ func (m LocalFileManager) LoadFile(incident string, fileName string) (io.ReadSee
 
 	return f, d, true, callback
 }
+
+// DeleteFile should attempt to remove the file assoicated with an incident.
+func (m LocalFileManager) DeleteFile(incident string, fileName string) bool {
+	filePath := m.Root + "/incidents/" + incident + "/" + fileName
+
+	if _, err := os.Stat(filePath); os.IsNotExist(err) {
+		return false
+	}
+
+	err2 := os.Remove(filePath)
+
+	if err2 != nil {
+		return false
+	}
+
+	return true
+}

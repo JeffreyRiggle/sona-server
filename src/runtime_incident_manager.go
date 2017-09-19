@@ -68,3 +68,24 @@ func (manager RuntimeIncidentManager) GetAttachments(incidentId int) ([]Attachme
 
 	return make([]Attachment, 0), false
 }
+
+// RemoveAttachment will find and remove an attachment associated with an incident.
+func (manager RuntimeIncidentManager) RemoveAttachment(incidentId int, fileName string) bool {
+	val, ok := manager.Attachments[incidentId]
+
+	if !ok {
+		return false
+	}
+
+	for i, v := range val {
+		if v.FileName == fileName {
+			logManager.LogPrintf("Found filename %v", fileName)
+			val = append(val[:i], val[i+1:]...)
+			logManager.LogPrintf("New Slice %v", val)
+			manager.Attachments[incidentId] = val
+			return true
+		}
+	}
+
+	return false
+}

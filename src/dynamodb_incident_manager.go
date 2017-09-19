@@ -583,6 +583,46 @@ func (manager DynamoDBIncidentManager) GetAttachments(incidentId int) ([]Attachm
 	return attachments, true
 }
 
+// RemoveAttachment will find and remove an attachment associated with an incident.
+func (manager DynamoDBIncidentManager) RemoveAttachment(incidentId int, fileName string) bool {
+	svc := CreateService(*manager.Region)
+	input := &dynamodb.DeleteItemInput{
+		Key: map[string]*dynamodb.AttributeValue{
+			"id": {
+				N: aws.String(strconv.Itoa(incidentId)),
+			},
+		},
+		TableName: aws.String(*manager.AttachmentTable),
+	}
+
+	_, err := svc.DeleteItem(input)
+	if err != nil {
+		if aerr, ok := err.(awserr.Error); ok {
+			switch aerr.Code() {
+			case dynamodb.ErrCodeConditionalCheckFailedException:
+				logManager.LogPrintln(dynamodb.ErrCodeConditionalCheckFailedException, aerr.Error())
+			case dynamodb.ErrCodeProvisionedThroughputExceededException:
+				logManager.LogPrintln(dynamodb.ErrCodeProvisionedThroughputExceededException, aerr.Error())
+			case dynamodb.ErrCodeResourceNotFoundException:
+				logManager.LogPrintln(dynamodb.ErrCodeResourceNotFoundException, aerr.Error())
+			case dynamodb.ErrCodeItemCollectionSizeLimitExceededException:
+				logManager.LogPrintln(dynamodb.ErrCodeItemCollectionSizeLimitExceededException, aerr.Error())
+			case dynamodb.ErrCodeInternalServerError:
+				logManager.LogPrintln(dynamodb.ErrCodeInternalServerError, aerr.Error())
+			default:
+				logManager.LogPrintln(aerr.Error())
+			}
+		} else {
+			logManager.LogPrintln(err.Error())
+		}
+
+		return false
+	}
+
+	logManager.LogPrintln("Removed attachment from dynamodb.")
+	return true
+}
+
 // CreateService will create a new dynamodb.DynamoDB instance.
 func CreateService(region string) *dynamodb.DynamoDB {
 	sess := session.Must(session.NewSession(&aws.Config{

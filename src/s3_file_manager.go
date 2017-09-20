@@ -116,6 +116,31 @@ func (manager S3FileManager) LoadFile(incident string, fileName string) (io.Read
 	return f, d, true, callback
 }
 
+// DeleteFile should attempt to remove the file assoicated with an incident.
+func (manager S3FileManager) DeleteFile(incident string, fileName string) bool {
+	svc := s3.New(CreateSession(manager.Region))
+
+	input := &s3.DeleteObjectInput{
+		Bucket: aws.String(manager.Bucket),
+		Key:    aws.String(incident + "/" + fileName),
+	}
+
+	_, err := svc.DeleteObject(input)
+
+	if err != nil {
+		if aerr, ok := err.(awserr.Error); ok {
+			logManager.LogPrintf("Error deleting object in s3 %v\n", aerr.Error())
+		} else {
+			logManager.LogPrintf("Error deleting object in s3 %v\n", err.Error)
+		}
+
+		return false
+	}
+
+	logManager.LogPrintln("Deleted object in s3")
+	return true
+}
+
 // CreateSession will create a session.Session for an AWS region.
 func CreateSession(region string) *session.Session {
 	return session.Must(session.NewSession(&aws.Config{

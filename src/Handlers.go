@@ -184,14 +184,17 @@ func HandleUploadAttachment(w http.ResponseWriter, r *http.Request) {
 
 	logManager.LogPrintf("Attachment uploaded to %v\n.", path)
 	attach := Attachment{handler.Filename, time.Now().Format(time.RFC3339)}
-	if incidentManager.AddAttachment(incidentId, attach) {
-		logManager.LogPrintln("Updated incident with attachment")
-		go hookManager.CallAttachedHooks(incidentId, attach)
-		w.WriteHeader(http.StatusOK)
+	if !incidentManager.AddAttachment(incidentId, attach) {
+		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 
-	w.WriteHeader(http.StatusInternalServerError)
+	logManager.LogPrintln("Updated incident with attachment")
+	go hookManager.CallAttachedHooks(incidentId, attach)
+	w.Header().Set("Content-Type", "application/json;charset=UTF-8")
+	if err := json.NewEncoder(w).Encode(attach); err != nil {
+		panic(err)
+	}
 }
 
 // HandleDownloadAttachment handles the download attachment web request.
@@ -225,6 +228,66 @@ func HandleDownloadAttachment(w http.ResponseWriter, r *http.Request) {
 	defer callback()
 
 	http.ServeContent(w, r, d.Name(), d.ModTime(), f)
+}
+
+func HandleRemoveAttachment(w http.ResponseWriter, r *http.Request) {
+	logManager.LogPrintln("Got remove attachment request.")
+
+	vars := mux.Vars(r)
+
+	incident := vars["incidentId"]
+	incidentId, err := strconv.Atoi(incident)
+
+	if err != nil {
+		logManager.LogPrintf("Error converting incidentId %v\n", err)
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+
+	_, ok := incidentManager.GetIncident(incidentId)
+
+	if !ok {
+		logManager.LogPrintf("Got Invalid attachment request for %v.\n", incidentId)
+		w.WriteHeader(http.StatusNotFound)
+		return
+	}
+
+	attachmentId := vars["attachmentId"]
+	if len(attachmentId) <= 0 {
+		logManager.LogPrintln("Invalid attachment requested")
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+
+	attachments, success := incidentManager.GetAttachments(incidentId)
+
+	if !success {
+		logManager.LogFatalf("Unable to get attachments for incident %v.\n", incidentId)
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	found := false
+	for _, v := range attachments {
+		if v.FileName == attachmentId {
+			found = true
+			break
+		}
+	}
+
+	if !found {
+		logManager.LogPrintf("Got invalid attachment request for attachment id %v.\n", attachmentId)
+		w.WriteHeader(http.StatusNotFound)
+		return
+	}
+
+	if !incidentManager.RemoveAttachment(incidentId, attachmentId) {
+		logManager.LogFatalln("Unable to remove attachment")
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	fileManager.DeleteFile(incident, attachmentId)
 }
 
 // HandleGetIncident handles the get incident web request.

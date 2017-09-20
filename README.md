@@ -26,7 +26,7 @@ Sona is recommneded for anyone who wants a free easy to deploy incident tracking
 
   1. Install go 1.8.3+ (https://golang.org/dl/)
   2. Create a new folder for this project making sure it is in your gopath.
-  3. run git clone https://<username>@bitbucket.org/JeffreyRiggle/sona.git
+  3. run git clone https://github.com/JeffreyRiggle/sona-server
   
 ### Building
   1. Run go get (make sure to grab dependencies)

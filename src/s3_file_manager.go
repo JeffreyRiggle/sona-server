@@ -118,7 +118,7 @@ func (manager S3FileManager) LoadFile(incident string, fileName string) (io.Read
 
 // DeleteFile should attempt to remove the file assoicated with an incident.
 func (manager S3FileManager) DeleteFile(incident string, fileName string) bool {
-	svc := s3.New(session.New())
+	svc := s3.New(CreateSession(manager.Region))
 
 	input := &s3.DeleteObjectInput{
 		Bucket: aws.String(manager.Bucket),

@@ -139,7 +139,7 @@ func (manager DynamoDBIncidentManager) createAttachmentTable() {
 				AttributeType: aws.String("N"),
 			},
 			{
-				AttributeName: aws.String("time"),
+				AttributeName: aws.String("filename"),
 				AttributeType: aws.String("S"),
 			},
 		},
@@ -149,7 +149,7 @@ func (manager DynamoDBIncidentManager) createAttachmentTable() {
 				KeyType:       aws.String("HASH"),
 			},
 			{
-				AttributeName: aws.String("time"),
+				AttributeName: aws.String("filename"),
 				KeyType:       aws.String("RANGE"),
 			},
 		},
@@ -590,6 +590,9 @@ func (manager DynamoDBIncidentManager) RemoveAttachment(incidentId int, fileName
 		Key: map[string]*dynamodb.AttributeValue{
 			"id": {
 				N: aws.String(strconv.Itoa(incidentId)),
+			},
+			"filename": {
+				S: aws.String(fileName),
 			},
 		},
 		TableName: aws.String(*manager.AttachmentTable),

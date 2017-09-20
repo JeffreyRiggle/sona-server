@@ -9,7 +9,7 @@
     },
     "s3config": {
         "region": "us-east-1",
-        "bucket": "jr-incident-test-1"
+        "bucket": ""
     },
     "webhooks": {
         "addedhooks":
@@ -66,6 +66,6 @@
     },
     "logging": {
         "enabled": true,
-        "path": "C:/Users/Jeff"
+        "path": ""
     }
 }

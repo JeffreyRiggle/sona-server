@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/json"
+	"fmt"
 	"log"
 	"net/http"
 	"os"
@@ -20,6 +21,7 @@ func main() {
 		path = ""
 	}
 	initialize(path)
+	defer incidentManager.CleanUp()
 
 	router := NewRouter()
 
@@ -116,6 +118,20 @@ func setupIncidentManager(config Config) {
 		return
 	}
 
+	if config.IncidentManagerType == 1 {
+		setupDynamoDBIncidentManager(config)
+		return
+	}
+
+	if config.IncidentManagerType == 2 {
+		setupMySQLIncidentManager(config)
+		return
+	}
+
+	panic(fmt.Sprintf("Invalid incident manager config %v", config.IncidentManagerType))
+}
+
+func setupDynamoDBIncidentManager(config Config) {
 	if len(config.DynamoConfig.Region) <= 0 {
 		panic("No configured region")
 	}
@@ -141,4 +157,17 @@ func setupIncidentManager(config Config) {
 	dbManager := DynamoDBIncidentManager{&config.DynamoConfig.Region, &incs, &attach}
 	dbManager.Initialize()
 	incidentManager = &dbManager
+}
+
+func setupMySQLIncidentManager(config Config) {
+	mysqlManager := MySQLManager{
+		config.MYSQL.UserName,
+		config.MYSQL.Password,
+		config.MYSQL.Host,
+		config.MYSQL.Port,
+		config.MYSQL.DBName,
+		nil,
+	}
+	mysqlManager.Initialize()
+	incidentManager = &mysqlManager
 }

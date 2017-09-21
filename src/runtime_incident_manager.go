@@ -88,3 +88,8 @@ func (manager RuntimeIncidentManager) RemoveAttachment(incidentId int, fileName 
 
 	return false
 }
+
+// CleanUp will do any required cleanup actions on the incident manager.
+func (manager RuntimeIncidentManager) CleanUp() {
+	// No op
+}

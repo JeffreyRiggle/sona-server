@@ -626,6 +626,11 @@ func (manager DynamoDBIncidentManager) RemoveAttachment(incidentId int, fileName
 	return true
 }
 
+// CleanUp will do any required cleanup actions on the incident manager.
+func (manager DynamoDBIncidentManager) CleanUp() {
+	// No op
+}
+
 // CreateService will create a new dynamodb.DynamoDB instance.
 func CreateService(region string) *dynamodb.DynamoDB {
 	sess := session.Must(session.NewSession(&aws.Config{

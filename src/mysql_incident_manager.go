@@ -3,29 +3,13 @@ package main
 import (
 	"database/sql"
 	"fmt"
-
-	_ "github.com/go-sql-driver/mysql"
 )
 
 type MySQLManager struct {
-	UserName   string
-	Password   string
-	Host       string
-	Port       string
-	DBName     string
 	Connection *sql.DB
 }
 
 func (manager MySQLManager) Initialize() {
-	conn := fmt.Sprintf("%v:%v@tcp(%v:%v)/%v", manager.UserName, manager.Password, manager.Host, manager.Port, manager.DBName)
-	db, err := sql.Open("mysql", conn)
-
-	if err != nil {
-		panic(err)
-	}
-
-	manager.Connection = db
-
 	if !manager.hasTable("Incidents") {
 		logManager.LogPrintln("Unable to find incident table creating now")
 		manager.createIncidentTable()
@@ -125,12 +109,14 @@ func (manager MySQLManager) AddIncident(incident *Incident) bool {
 	stmt, err := manager.Connection.Prepare("INSERT INTO incidents (Type, Description, Reporter, State) " +
 		"VALUES (?, ?, ?, ?)")
 	if err != nil {
+		logManager.LogPrintf("Error occurred when preparing add %v", err)
 		return false
 	}
 
 	res, err := stmt.Exec(incident.Type, incident.Description, incident.Reporter, incident.State)
 
 	if err != nil {
+		logManager.LogPrintf("Error occurred when executing add %v", err)
 		return false
 	}
 
@@ -139,11 +125,98 @@ func (manager MySQLManager) AddIncident(incident *Incident) bool {
 }
 
 func (manager MySQLManager) GetIncident(incidentId int) (Incident, bool) {
-	return Incident{}, true
+	retVal := Incident{"", -1, "", "", "", nil}
+	var (
+		id           int
+		incidenttype string
+		description  string
+		reporter     string
+		state        string
+		attname      sql.NullString
+		attvalue     sql.NullString
+	)
+
+	rows, err := manager.Connection.Query("SELECT Id, Type, Description, Reporter, State, AttributeName, AttributeValue "+
+		"FROM incidents LEFT JOIN incidentattributes "+
+		"ON IncidentId = Id "+
+		"WHERE Id = ?", incidentId)
+
+	if err != nil {
+		logManager.LogPrintf("Error occurred when preparing get %v\n", err)
+		return retVal, false
+	}
+
+	defer rows.Close()
+	for rows.Next() {
+		err := rows.Scan(&id, &incidenttype, &description, &reporter, &state, &attname, &attvalue)
+		if err != nil {
+			logManager.LogPrintln(err)
+		}
+
+		if retVal.Id == -1 {
+			retVal = Incident{incidenttype, id, description, reporter, state, make(map[string]string, 0)}
+		}
+		if attname.Valid && attvalue.Valid {
+			retVal.Attributes[attname.String] = attvalue.String
+		}
+	}
+
+	logManager.LogPrintf("got incident: %v\n", retVal)
+	return retVal, true
 }
 
 func (manager MySQLManager) GetIncidents() ([]Incident, bool) {
-	return make([]Incident, 0), true
+	incidents := make(map[int]Incident, 0)
+	var (
+		id           int
+		incidenttype string
+		description  string
+		reporter     string
+		state        string
+		attname      sql.NullString
+		attvalue     sql.NullString
+	)
+
+	if manager.Connection == nil {
+		logManager.LogFatalln("Connection is nil")
+	}
+
+	rows, err := manager.Connection.Query("SELECT Id, Type, Description, Reporter, State, AttributeName, AttributeValue " +
+		"FROM incidents LEFT JOIN incidentattributes " +
+		"ON IncidentId = Id")
+
+	if err != nil {
+		logManager.LogPrintf("Error occurred when preparing get %v\n", err)
+		return nil, false
+	}
+
+	defer rows.Close()
+	for rows.Next() {
+		err := rows.Scan(&id, &incidenttype, &description, &reporter, &state, &attname, &attvalue)
+		if err != nil {
+			logManager.LogPrintln(err)
+		}
+
+		val, found := incidents[id]
+		if !found {
+			val = Incident{incidenttype, id, description, reporter, state, make(map[string]string, 0)}
+		}
+
+		if attname.Valid && attvalue.Valid {
+			val.Attributes[attname.String] = attvalue.String
+		}
+
+		incidents[id] = val
+	}
+
+	retVal := make([]Incident, len(incidents))
+	iter := 0
+	for _, value := range incidents {
+		retVal[iter] = value
+		iter++
+	}
+	logManager.LogPrintf("got incidents: %v\n", retVal)
+	return retVal, true
 }
 
 func (manager MySQLManager) UpdateIncident(id int, incident IncidentUpdate) bool {
@@ -164,6 +237,7 @@ func (manager MySQLManager) RemoveAttachment(incidentId int, fileName string) bo
 
 // CleanUp will do any required cleanup actions on the incident manager.
 func (manager MySQLManager) CleanUp() {
+	logManager.LogPrintln("Closing database connection")
 	if manager.Connection != nil {
 		manager.Connection.Close()
 	}

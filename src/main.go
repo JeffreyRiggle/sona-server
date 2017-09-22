@@ -1,6 +1,7 @@
 package main
 
 import (
+	"database/sql"
 	"encoding/json"
 	"fmt"
 	"log"
@@ -8,6 +9,7 @@ import (
 	"os"
 	"os/user"
 
+	_ "github.com/go-sql-driver/mysql"
 	"github.com/gorilla/handlers"
 )
 
@@ -160,14 +162,14 @@ func setupDynamoDBIncidentManager(config Config) {
 }
 
 func setupMySQLIncidentManager(config Config) {
-	mysqlManager := MySQLManager{
-		config.MYSQL.UserName,
-		config.MYSQL.Password,
-		config.MYSQL.Host,
-		config.MYSQL.Port,
-		config.MYSQL.DBName,
-		nil,
+	conn := fmt.Sprintf("%v:%v@tcp(%v:%v)/%v", config.MYSQL.UserName, config.MYSQL.Password, config.MYSQL.Host, config.MYSQL.Port, config.MYSQL.DBName)
+	db, err := sql.Open("mysql", conn)
+
+	if err != nil {
+		panic(err)
 	}
+
+	mysqlManager := MySQLManager{db}
 	mysqlManager.Initialize()
 	incidentManager = &mysqlManager
 }

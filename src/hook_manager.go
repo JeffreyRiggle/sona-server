@@ -81,7 +81,7 @@ func preformAddSubstitutionImpl(key string, incident Incident) string {
 
 func getAddSubstitutionValue(key string, incident Incident) string {
 	if key == "id" {
-		return strconv.Itoa(incident.Id)
+		return strconv.FormatInt(incident.Id, 10)
 	}
 	if key == "reporter" {
 		return incident.Reporter

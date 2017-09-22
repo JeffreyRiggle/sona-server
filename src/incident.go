@@ -3,7 +3,7 @@ package main
 // Incident defines the basic item for managing and tracking issues.
 type Incident struct {
 	Type        string            `json:"type"`        // The type of incident.
-	Id          int               `json:"id"`          // The unique identifier for the incident.
+	Id          int64             `json:"id"`          // The unique identifier for the incident.
 	Description string            `json:"description"` // The description of the incident.
 	Reporter    string            `json:"reporter"`    // The reporter of the incident.
 	State       string            `json:"state"`       // The current state of the incident.

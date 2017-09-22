@@ -81,7 +81,7 @@ func useDefaultConfig() {
 	logManager = LogManager{currentUser.HomeDir, true}
 	logManager.Initialize()
 	fileManager = LocalFileManager{currentUser.HomeDir}
-	incidentManager = RuntimeIncidentManager{make(map[int]*Incident), make(map[int][]Attachment)}
+	incidentManager = RuntimeIncidentManager{make(map[int64]*Incident), make(map[int][]Attachment)}
 }
 
 func setupLogManager(config Config) {
@@ -116,7 +116,7 @@ func setupFileManager(config Config) {
 func setupIncidentManager(config Config) {
 	if config.IncidentManagerType == 0 {
 		log.Println("Using Runtime incident manager")
-		incidentManager = RuntimeIncidentManager{make(map[int]*Incident), make(map[int][]Attachment)}
+		incidentManager = RuntimeIncidentManager{make(map[int64]*Incident), make(map[int][]Attachment)}
 		return
 	}
 

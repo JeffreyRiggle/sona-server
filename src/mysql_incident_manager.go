@@ -107,7 +107,7 @@ func (manager MySQLManager) createAttachmentTable() {
 
 func (manager MySQLManager) AddIncident(incident *Incident) bool {
 	stmt, err := manager.Connection.Prepare("INSERT INTO incidents (Type, Description, Reporter, State) " +
-		"VALUES (?, ?, ?, ?)")
+		"VALUES (?, ?, ?, ?);")
 	if err != nil {
 		logManager.LogPrintf("Error occurred when preparing add %v", err)
 		return false
@@ -120,14 +120,22 @@ func (manager MySQLManager) AddIncident(incident *Incident) bool {
 		return false
 	}
 
-	logManager.LogPrintf("Created new incident: %v\n", res)
+	id, err := res.LastInsertId()
+
+	if err != nil {
+		logManager.LogPrintf("Unable to get last inserted id %v\n", err)
+		return false
+	}
+
+	incident.Id = id
+	logManager.LogPrintf("Created new incident: %v\n", incident)
 	return true
 }
 
 func (manager MySQLManager) GetIncident(incidentId int) (Incident, bool) {
-	retVal := Incident{"", -1, "", "", "", nil}
+	retVal := Incident{"", 0, "", "", "", nil}
 	var (
-		id           int
+		id           int64
 		incidenttype string
 		description  string
 		reporter     string
@@ -153,7 +161,7 @@ func (manager MySQLManager) GetIncident(incidentId int) (Incident, bool) {
 			logManager.LogPrintln(err)
 		}
 
-		if retVal.Id == -1 {
+		if retVal.Id == 0 {
 			retVal = Incident{incidenttype, id, description, reporter, state, make(map[string]string, 0)}
 		}
 		if attname.Valid && attvalue.Valid {
@@ -166,9 +174,9 @@ func (manager MySQLManager) GetIncident(incidentId int) (Incident, bool) {
 }
 
 func (manager MySQLManager) GetIncidents() ([]Incident, bool) {
-	incidents := make(map[int]Incident, 0)
+	incidents := make(map[int64]Incident, 0)
 	var (
-		id           int
+		id           int64
 		incidenttype string
 		description  string
 		reporter     string

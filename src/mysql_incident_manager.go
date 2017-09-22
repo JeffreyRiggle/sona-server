@@ -191,7 +191,8 @@ func (manager MySQLManager) GetIncidents() ([]Incident, bool) {
 
 	rows, err := manager.Connection.Query("SELECT Id, Type, Description, Reporter, State, AttributeName, AttributeValue " +
 		"FROM incidents LEFT JOIN incidentattributes " +
-		"ON IncidentId = Id")
+		"ON IncidentId = Id " +
+		"ORDER BY Id")
 
 	if err != nil {
 		logManager.LogPrintf("Error occurred when preparing get %v\n", err)
@@ -228,6 +229,117 @@ func (manager MySQLManager) GetIncidents() ([]Incident, bool) {
 }
 
 func (manager MySQLManager) UpdateIncident(id int, incident IncidentUpdate) bool {
+	inc, pass := manager.GetIncident(id)
+
+	if !pass {
+		return false
+	}
+
+	if len(incident.Attributes) > 0 {
+		if !manager.updateAttributes(inc, incident) {
+			return false
+		}
+	}
+
+	if !updateIncident(&inc, incident) {
+		return true
+	}
+
+	stmt, err := manager.Connection.Prepare("UPDATE incidents SET State = ? , Descrption = ?, Reporter = ? WHERE Id = ?")
+	if err != nil {
+		logManager.LogPrintf("Error occurred when preparing update attribute %v", err)
+		return false
+	}
+
+	_, err = stmt.Exec(inc.State, inc.Description, inc.Reporter, id)
+
+	if err != nil {
+		logManager.LogPrintf("Error occurred when executing update attribute %v", err)
+		return false
+	}
+
+	return true
+}
+
+func (manager MySQLManager) updateAttributes(original Incident, update IncidentUpdate) bool {
+	for i, value := range update.Attributes {
+		if val, ok := original.Attributes[i]; ok {
+			if val == value {
+				continue
+			}
+
+			if !manager.updateAttribute(value, i, original.Id) {
+				return false
+			}
+		} else {
+			if !manager.addAttribute(value, i, original.Id) {
+				return false
+			}
+		}
+	}
+
+	for i, _ := range original.Attributes {
+		_, ok := update.Attributes[i]
+		if ok {
+			continue
+		}
+
+		if !manager.removeAttribute(i, original.Id) {
+			return false
+		}
+	}
+	return true
+}
+
+func (manager MySQLManager) updateAttribute(value string, name string, id int64) bool {
+	stmt, err := manager.Connection.Prepare("UPDATE incidentattributes SET AttributeValue = ? WHERE IncidentId = ? AND AttributeName = ?")
+	if err != nil {
+		logManager.LogPrintf("Error occurred when preparing update attribute %v", err)
+		return false
+	}
+
+	_, err = stmt.Exec(value, id, name)
+
+	if err != nil {
+		logManager.LogPrintf("Error occurred when executing update attribute %v", err)
+		return false
+	}
+
+	return true
+}
+
+func (manager MySQLManager) addAttribute(value string, name string, id int64) bool {
+	stmt, err := manager.Connection.Prepare("INSERT INTO incidentattributes (IncidentId, AttributeName, AttributeValue) " +
+		"VALUES (?, ?, ?);")
+	if err != nil {
+		logManager.LogPrintf("Error occurred when preparing add attribute %v", err)
+		return false
+	}
+
+	_, err = stmt.Exec(id, name, value)
+
+	if err != nil {
+		logManager.LogPrintf("Error occurred when executing add attribute %v", err)
+		return false
+	}
+
+	return true
+}
+
+func (manager MySQLManager) removeAttribute(name string, id int64) bool {
+	stmt, err := manager.Connection.Prepare("DELETE FROM incidentattributes WHERE IncidentId = ? AND AttributeName = ?")
+	if err != nil {
+		logManager.LogPrintf("Error occurred when preparing add attribute %v", err)
+		return false
+	}
+
+	_, err = stmt.Exec(id, name)
+
+	if err != nil {
+		logManager.LogPrintf("Error occurred when executing add attribute %v", err)
+		return false
+	}
+
 	return true
 }
 

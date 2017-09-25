@@ -221,7 +221,7 @@ func (manager DynamoDBIncidentManager) AddIncident(incident *Incident) bool {
 	return true
 }
 
-func (manager DynamoDBIncidentManager) getNextId() (int, bool) {
+func (manager DynamoDBIncidentManager) getNextId() (int64, bool) {
 	incidents, err := manager.getAllIncidents()
 
 	if err != nil {
@@ -356,7 +356,7 @@ func (manager DynamoDBIncidentManager) getIncidentFromDataBase(incidentId int) (
 			retVal.Type = umVal
 		}
 		if k == "id" {
-			var umVal int
+			var umVal int64
 			err2 := dynamodbattribute.Unmarshal(v, &umVal)
 
 			if err2 != nil {
@@ -472,7 +472,7 @@ func (manager DynamoDBIncidentManager) updateItemInDataBase(incident Incident) b
 				S: aws.String("Incident"),
 			},
 			"id": {
-				N: aws.String(strconv.Itoa(incident.Id)),
+				N: aws.String(strconv.FormatInt(incident.Id, 10)),
 			},
 		},
 		ReturnValues:     aws.String("ALL_NEW"),
@@ -624,6 +624,11 @@ func (manager DynamoDBIncidentManager) RemoveAttachment(incidentId int, fileName
 
 	logManager.LogPrintln("Removed attachment from dynamodb.")
 	return true
+}
+
+// CleanUp will do any required cleanup actions on the incident manager.
+func (manager DynamoDBIncidentManager) CleanUp() {
+	// No op
 }
 
 // CreateService will create a new dynamodb.DynamoDB instance.

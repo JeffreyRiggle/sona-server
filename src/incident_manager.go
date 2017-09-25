@@ -8,6 +8,7 @@ package main
 // AddAttachments should update the association between an incident and an attachment.
 // GetAttachments should get all attachments associated with an incident.
 // RemoveAttachment will find and remove an attachment associated with an incident.
+// CleanUp will do any required cleanup actions on the incident manager.
 type IncidentManager interface {
 	AddIncident(incident *Incident) bool
 	GetIncident(incidentId int) (Incident, bool)
@@ -16,4 +17,5 @@ type IncidentManager interface {
 	AddAttachment(incidentId int, attachment Attachment) bool
 	GetAttachments(incidentId int) ([]Attachment, bool)
 	RemoveAttachment(incidentId int, fileName string) bool
+	CleanUp()
 }

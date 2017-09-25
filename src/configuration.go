@@ -1,12 +1,13 @@
 package main
 
 // Config defines the configuration that can be used on this web service.
-// The IncidentManagerType controls what manager to use (0 = runtime, 1 = dynamodb)
+// The IncidentManagerType controls what manager to use (0 = runtime, 1 = dynamodb, 2 = mysql)
 // The FileManagerType controls what file manager to use (0 = local, 1 = S3)
 type Config struct {
 	IncidentManagerType int                    `json:"incidentmanagertype"`
 	FileManagerType     int                    `json:"filemanagertype"`
 	DynamoConfig        DynamoDBConfig         `json:"dynamodb"`
+	MYSQL               MySQLConfig            `json:"mysql"`
 	LocalFileConfig     LocalFileManagerConfig `json:"fileconfig"`
 	S3Config            S3FileManagerConfig    `json:"s3config"`
 	Hooks               WebHooks               `json:"webhooks"`
@@ -87,4 +88,18 @@ type S3FileManagerConfig struct {
 type LogConfig struct {
 	Enabled bool   `json:"enabled"`
 	Path    string `json:"path"`
+}
+
+// MySQLConfig controls the configuration of a mysql database if it is in use.
+// The UserName controls what user to log in as.
+// The Password controls what password to use for the user.
+// The Host controls what host you will attempt to login to.
+// The Port controls what port will will login to on the host.
+// The DBName controls what DB you will login to.
+type MySQLConfig struct {
+	UserName string `json:"username"`
+	Password string `json:"password"`
+	Host     string `json:"host"`
+	Port     string `json:"port"`
+	DBName   string `json:"dbname"`
 }

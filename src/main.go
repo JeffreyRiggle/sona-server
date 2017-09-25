@@ -1,12 +1,15 @@
 package main
 
 import (
+	"database/sql"
 	"encoding/json"
+	"fmt"
 	"log"
 	"net/http"
 	"os"
 	"os/user"
 
+	_ "github.com/go-sql-driver/mysql"
 	"github.com/gorilla/handlers"
 )
 
@@ -20,6 +23,7 @@ func main() {
 		path = ""
 	}
 	initialize(path)
+	defer incidentManager.CleanUp()
 
 	router := NewRouter()
 
@@ -77,7 +81,7 @@ func useDefaultConfig() {
 	logManager = LogManager{currentUser.HomeDir, true}
 	logManager.Initialize()
 	fileManager = LocalFileManager{currentUser.HomeDir}
-	incidentManager = RuntimeIncidentManager{make(map[int]*Incident), make(map[int][]Attachment)}
+	incidentManager = RuntimeIncidentManager{make(map[int64]*Incident), make(map[int][]Attachment)}
 }
 
 func setupLogManager(config Config) {
@@ -112,10 +116,24 @@ func setupFileManager(config Config) {
 func setupIncidentManager(config Config) {
 	if config.IncidentManagerType == 0 {
 		log.Println("Using Runtime incident manager")
-		incidentManager = RuntimeIncidentManager{make(map[int]*Incident), make(map[int][]Attachment)}
+		incidentManager = RuntimeIncidentManager{make(map[int64]*Incident), make(map[int][]Attachment)}
 		return
 	}
 
+	if config.IncidentManagerType == 1 {
+		setupDynamoDBIncidentManager(config)
+		return
+	}
+
+	if config.IncidentManagerType == 2 {
+		setupMySQLIncidentManager(config)
+		return
+	}
+
+	panic(fmt.Sprintf("Invalid incident manager config %v", config.IncidentManagerType))
+}
+
+func setupDynamoDBIncidentManager(config Config) {
 	if len(config.DynamoConfig.Region) <= 0 {
 		panic("No configured region")
 	}
@@ -141,4 +159,17 @@ func setupIncidentManager(config Config) {
 	dbManager := DynamoDBIncidentManager{&config.DynamoConfig.Region, &incs, &attach}
 	dbManager.Initialize()
 	incidentManager = &dbManager
+}
+
+func setupMySQLIncidentManager(config Config) {
+	conn := fmt.Sprintf("%v:%v@tcp(%v:%v)/%v", config.MYSQL.UserName, config.MYSQL.Password, config.MYSQL.Host, config.MYSQL.Port, config.MYSQL.DBName)
+	db, err := sql.Open("mysql", conn)
+
+	if err != nil {
+		panic(err)
+	}
+
+	mysqlManager := MySQLManager{db}
+	mysqlManager.Initialize()
+	incidentManager = &mysqlManager
 }

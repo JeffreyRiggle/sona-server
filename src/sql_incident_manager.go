@@ -344,14 +344,65 @@ func (manager MySQLManager) removeAttribute(name string, id int64) bool {
 }
 
 func (manager MySQLManager) AddAttachment(incidentId int, attachment Attachment) bool {
+	stmt, err := manager.Connection.Prepare("INSERT INTO incidentattachments (IncidentId, FileName, TimeStampString) " +
+		"VALUES (?, ?, ?);")
+
+	if err != nil {
+		logManager.LogPrintf("Error occurred when preparing add attachment %v", err)
+		return false
+	}
+
+	_, err = stmt.Exec(incidentId, attachment.FileName, attachment.Time)
+
+	if err != nil {
+		logManager.LogPrintf("Error occurred when executing add attachment %v", err)
+		return false
+	}
+
 	return true
 }
 
 func (manager MySQLManager) GetAttachments(incidentId int) ([]Attachment, bool) {
-	return make([]Attachment, 0), true
+	attachments := make([]Attachment, 0)
+	var (
+		fileName  string
+		timestamp string
+	)
+
+	rows, err := manager.Connection.Query("SELECT FileName, TimeStampString FROM IncidentAttachments WHERE IncidentId = ?", incidentId)
+
+	if err != nil {
+		logManager.LogPrintf("Error occurred when preparing get %v\n", err)
+		return attachments, false
+	}
+
+	defer rows.Close()
+	for rows.Next() {
+		err := rows.Scan(&fileName, &timestamp)
+		if err != nil {
+			logManager.LogPrintln(err)
+		}
+
+		attachments = append(attachments, Attachment{fileName, timestamp})
+	}
+
+	return attachments, true
 }
 
 func (manager MySQLManager) RemoveAttachment(incidentId int, fileName string) bool {
+	stmt, err := manager.Connection.Prepare("DELETE FROM incidentattachments WHERE IncidentId = ? AND FileName = ?")
+	if err != nil {
+		logManager.LogPrintf("Error occurred when preparing remove attachment %v", err)
+		return false
+	}
+
+	_, err = stmt.Exec(incidentId, fileName)
+
+	if err != nil {
+		logManager.LogPrintf("Error occurred when executing remove attachment %v", err)
+		return false
+	}
+
 	return true
 }
 

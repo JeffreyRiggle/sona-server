@@ -38,7 +38,7 @@ func setup() {
 		http.Handle("/", router)
 	}
 
-	incidentManager = RuntimeIncidentManager{make(map[int]*Incident), make(map[int][]Attachment)}
+	incidentManager = RuntimeIncidentManager{make(map[int64]*Incident), make(map[int][]Attachment)}
 	hookManager = HookManager{make([]WebHook, 0), make([]WebHook, 0), make([]WebHook, 0)}
 	fileManager = FakeFileManager{}
 }

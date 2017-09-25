@@ -3,7 +3,7 @@ package main
 import "testing"
 
 func TestAddIncident(t *testing.T) {
-	var manager = RuntimeIncidentManager{make(map[int]*Incident, 0), make(map[int][]Attachment, 0)}
+	var manager = RuntimeIncidentManager{make(map[int64]*Incident, 0), make(map[int][]Attachment, 0)}
 	manager.AddIncident(new(Incident))
 
 	if len(manager.Incidents) != 1 {
@@ -38,7 +38,7 @@ func TestAddIncident(t *testing.T) {
 }
 
 func TestGetIncident(t *testing.T) {
-	var manager = RuntimeIncidentManager{make(map[int]*Incident, 0), make(map[int][]Attachment, 0)}
+	var manager = RuntimeIncidentManager{make(map[int64]*Incident, 0), make(map[int][]Attachment, 0)}
 	var incident = Incident{"Incident", 0, "Some Description", "Someone", "Open", make(map[string]string, 0)}
 	manager.AddIncident(&incident)
 
@@ -88,7 +88,7 @@ func TestGetIncident(t *testing.T) {
 }
 
 func TestGetInvalidIncident(t *testing.T) {
-	var manager = RuntimeIncidentManager{make(map[int]*Incident, 0), make(map[int][]Attachment, 0)}
+	var manager = RuntimeIncidentManager{make(map[int64]*Incident, 0), make(map[int][]Attachment, 0)}
 	var incident = Incident{"Incident", 0, "Some Description", "Someone", "Open", make(map[string]string, 0)}
 	manager.AddIncident(&incident)
 
@@ -103,7 +103,7 @@ func TestGetInvalidIncident(t *testing.T) {
 }
 
 func TestGetIncidents(t *testing.T) {
-	var manager = RuntimeIncidentManager{make(map[int]*Incident, 0), make(map[int][]Attachment, 0)}
+	var manager = RuntimeIncidentManager{make(map[int64]*Incident, 0), make(map[int][]Attachment, 0)}
 	var incident1 = Incident{"Incident", 0, "Some Description", "Someone", "Open", make(map[string]string, 0)}
 	var incident2 = Incident{"Incident", 0, "Some Description", "Someone", "Open", make(map[string]string, 0)}
 	manager.AddIncident(&incident1)
@@ -127,7 +127,7 @@ func TestGetIncidents(t *testing.T) {
 }
 
 func TestUpdateIncident(t *testing.T) {
-	var manager = RuntimeIncidentManager{make(map[int]*Incident, 0), make(map[int][]Attachment, 0)}
+	var manager = RuntimeIncidentManager{make(map[int64]*Incident, 0), make(map[int][]Attachment, 0)}
 	var incident = Incident{"Incident", 0, "Some Description", "Someone", "Open", make(map[string]string, 0)}
 	manager.AddIncident(&incident)
 	manager.UpdateIncident(0, IncidentUpdate{"New State", "New Description", "", nil})
@@ -178,7 +178,7 @@ func TestUpdateIncident(t *testing.T) {
 }
 
 func TestAddAttachment(t *testing.T) {
-	var manager = RuntimeIncidentManager{make(map[int]*Incident, 0), make(map[int][]Attachment, 0)}
+	var manager = RuntimeIncidentManager{make(map[int64]*Incident, 0), make(map[int][]Attachment, 0)}
 	var incident = Incident{"Incident", 0, "Some Description", "Someone", "Open", make(map[string]string, 0)}
 	manager.AddIncident(&incident)
 
@@ -201,7 +201,7 @@ func TestAddAttachment(t *testing.T) {
 }
 
 func TestAddAttachmentToInvalidIncident(t *testing.T) {
-	var manager = RuntimeIncidentManager{make(map[int]*Incident, 0), make(map[int][]Attachment, 0)}
+	var manager = RuntimeIncidentManager{make(map[int64]*Incident, 0), make(map[int][]Attachment, 0)}
 	var incident = Incident{"Incident", 0, "Some Description", "Someone", "Open", make(map[string]string, 0)}
 	manager.AddIncident(&incident)
 
@@ -224,7 +224,7 @@ func TestAddAttachmentToInvalidIncident(t *testing.T) {
 }
 
 func TestGetAttachments(t *testing.T) {
-	var manager = RuntimeIncidentManager{make(map[int]*Incident, 0), make(map[int][]Attachment, 0)}
+	var manager = RuntimeIncidentManager{make(map[int64]*Incident, 0), make(map[int][]Attachment, 0)}
 	var incident = Incident{"Incident", 0, "Some Description", "Someone", "Open", make(map[string]string, 0)}
 	manager.AddIncident(&incident)
 
@@ -279,7 +279,7 @@ func TestGetAttachments(t *testing.T) {
 }
 
 func TestRemoveAttribute(t *testing.T) {
-	var manager = RuntimeIncidentManager{make(map[int]*Incident, 0), make(map[int][]Attachment, 0)}
+	var manager = RuntimeIncidentManager{make(map[int64]*Incident, 0), make(map[int][]Attachment, 0)}
 	var incident = Incident{"Incident", 0, "Some Description", "Someone", "Open", make(map[string]string, 0)}
 	manager.AddIncident(&incident)
 	var attributes = make(map[string]string, 0)
@@ -325,7 +325,7 @@ func TestRemoveAttribute(t *testing.T) {
 }
 
 func TestRemoveAttachment(t *testing.T) {
-	var manager = RuntimeIncidentManager{make(map[int]*Incident, 0), make(map[int][]Attachment, 0)}
+	var manager = RuntimeIncidentManager{make(map[int64]*Incident, 0), make(map[int][]Attachment, 0)}
 	var incident = Incident{"Incident", 0, "Some Description", "Someone", "Open", make(map[string]string, 0)}
 	manager.AddIncident(&incident)
 

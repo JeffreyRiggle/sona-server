@@ -130,6 +130,11 @@ func setupIncidentManager(config Config) {
 		return
 	}
 
+	if config.IncidentManagerType == 3 {
+		setupDataStoreIncidentManager(config)
+		return
+	}
+
 	panic(fmt.Sprintf("Invalid incident manager config %v", config.IncidentManagerType))
 }
 
@@ -172,4 +177,14 @@ func setupMySQLIncidentManager(config Config) {
 	mysqlManager := MySQLManager{db}
 	mysqlManager.Initialize()
 	incidentManager = &mysqlManager
+}
+
+func setupDataStoreIncidentManager(config Config) {
+	context, client := CreateDataStoreClient(config.DataStore.ProjectName, config.DataStore.AuthFile)
+	dataStoreManager := DataStoreIncidentManager{
+		context,
+		client,
+		0,
+	}
+	incidentManager = &dataStoreManager
 }

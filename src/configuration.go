@@ -1,13 +1,14 @@
 package main
 
 // Config defines the configuration that can be used on this web service.
-// The IncidentManagerType controls what manager to use (0 = runtime, 1 = dynamodb, 2 = mysql)
+// The IncidentManagerType controls what manager to use (0 = runtime, 1 = dynamodb, 2 = mysql, 3 = datastore)
 // The FileManagerType controls what file manager to use (0 = local, 1 = S3)
 type Config struct {
 	IncidentManagerType int                    `json:"incidentmanagertype"`
 	FileManagerType     int                    `json:"filemanagertype"`
 	DynamoConfig        DynamoDBConfig         `json:"dynamodb"`
 	MYSQL               MySQLConfig            `json:"mysql"`
+	DataStore           DataStoreConfig        `json:"datastore"`
 	LocalFileConfig     LocalFileManagerConfig `json:"fileconfig"`
 	S3Config            S3FileManagerConfig    `json:"s3config"`
 	Hooks               WebHooks               `json:"webhooks"`
@@ -102,4 +103,12 @@ type MySQLConfig struct {
 	Host     string `json:"host"`
 	Port     string `json:"port"`
 	DBName   string `json:"dbname"`
+}
+
+// DataStoreConfig controls the configuration of a google cloud datastore if it is in use.
+// The ProjectName controls what google cloud project will be used.
+// The AuthFile controls what json file to use for authentication.  
+type DataStoreConfig struct {
+	ProjectName string `json:"projectname"`
+	AuthFile    string `json:"authfile"`
 }

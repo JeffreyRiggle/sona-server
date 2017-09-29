@@ -21,6 +21,12 @@ type DataStoreIncident struct {
 	Description string
 	Reporter    string
 	State       string
+	Attributes  []DataStoreIncidentAttribute
+}
+
+type DataStoreIncidentAttribute struct {
+	Name  string
+	Value string
 }
 
 func CreateDataStoreClient(projectName string, authFile string) (*context.Context, *datastore.Client) {
@@ -38,7 +44,7 @@ func (manager DataStoreIncidentManager) AddIncident(incident *Incident) bool {
 	id := manager.getNextId()
 	incident.Id = id
 
-	dsInc := DataStoreIncident{incident.Type, incident.Id, incident.Description, incident.Reporter, incident.State}
+	dsInc := convertFromIncident(incident)
 	taskKey := datastore.NameKey("incidents", strconv.FormatInt(id, 10), nil)
 
 	logManager.LogPrintln("Attempting to put incident into database")
@@ -51,6 +57,24 @@ func (manager DataStoreIncidentManager) AddIncident(incident *Incident) bool {
 	manager.LastKnownId = id
 	logManager.LogPrintln("Incident created in database")
 	return true
+}
+
+func convertFromIncident(incident *Incident) DataStoreIncident {
+	attributes := make([]DataStoreIncidentAttribute, 0)
+	for k, v := range incident.Attributes {
+		attributes = append(attributes, DataStoreIncidentAttribute{Name: k, Value: v})
+	}
+
+	return DataStoreIncident{incident.Type, incident.Id, incident.Description, incident.Reporter, incident.State, attributes}
+}
+
+func convertToIncident(incident *DataStoreIncident) Incident {
+	retVal := Incident{incident.Type, incident.Id, incident.Description, incident.Reporter, incident.State, make(map[string]string, 0)}
+	for _, v := range incident.Attributes {
+		retVal.Attributes[v.Name] = v.Value
+	}
+
+	return retVal
 }
 
 func (manager DataStoreIncidentManager) getNextId() int64 {
@@ -83,19 +107,24 @@ func (manager DataStoreIncidentManager) getNextId() int64 {
 }
 
 func (manager DataStoreIncidentManager) GetIncident(incidentId int) (Incident, bool) {
-	q := datastore.NewQuery("incidents").Filter("Id ==", incidentId)
+	q := datastore.NewQuery("incidents").Filter("Id =", incidentId)
 	iter := manager.Connection.Run(*manager.Context, q)
 
-	var incident Incident
+	var incident DataStoreIncident
 	for {
 		_, err := iter.Next(&incident)
 
 		if err == iterator.Done {
 			break
 		}
+
+		if err != nil {
+			logManager.LogPrintf("Got error when attempting to get incident %v\n", err)
+			break
+		}
 	}
 
-	return incident, true
+	return convertToIncident(&incident), true
 }
 
 func (manager DataStoreIncidentManager) GetIncidents() ([]Incident, bool) {
@@ -105,29 +134,88 @@ func (manager DataStoreIncidentManager) GetIncidents() ([]Incident, bool) {
 	iter := manager.Connection.Run(*manager.Context, q)
 
 	for {
-		var incident Incident
+		var incident DataStoreIncident
 		_, err := iter.Next(&incident)
 
 		if err == iterator.Done {
 			break
 		}
 
-		retVal = append(retVal, incident)
+		if err != nil {
+			logManager.LogPrintf("Got error when attempting to get incident %v\n", err)
+			break
+		}
+
+		retVal = append(retVal, convertToIncident(&incident))
 	}
 
 	return retVal, true
 }
 
 func (manager DataStoreIncidentManager) UpdateIncident(id int, incident IncidentUpdate) bool {
+	logManager.LogPrintf("Got incident update request for %v\n", id)
+	inc, found := manager.GetIncident(id)
+
+	if !found {
+		return false
+	}
+
+	if !updateIncident(&inc, incident) {
+		return true
+	}
+
+	dsInc := convertFromIncident(&inc)
+	taskKey := datastore.NameKey("incidents", strconv.FormatInt(inc.Id, 10), nil)
+
+	logManager.LogPrintf("Attempting to update incident %v in database. %v\n", inc.Id, dsInc)
+
+	if _, err := manager.Connection.Put(*manager.Context, taskKey, &dsInc); err != nil {
+		logManager.LogPrintf("Unable to update incident %v\n", err)
+		return false
+	}
+
+	logManager.LogPrintf("Updated incident %v in database\n", inc.Id)
+
 	return true
 }
 
 func (manager DataStoreIncidentManager) AddAttachment(incidentId int, attachment Attachment) bool {
+	parentKey := datastore.NameKey("incidents", strconv.Itoa(incidentId), nil)
+	taskKey := datastore.NameKey("incidentattachments", attachment.FileName, parentKey)
+
+	logManager.LogPrintln("Attempting to put incident attachment into database")
+
+	if _, err := manager.Connection.Put(*manager.Context, taskKey, &attachment); err != nil {
+		logManager.LogPrintf("Unable to put incident attachment %v\n", err)
+		return false
+	}
+
+	logManager.LogPrintln("Incident attachment created in database")
 	return true
 }
 
 func (manager DataStoreIncidentManager) GetAttachments(incidentId int) ([]Attachment, bool) {
-	return make([]Attachment, 0), true
+	retVal := make([]Attachment, 0)
+	q := datastore.NewQuery("incidentattachments").Filter("Id =", incidentId)
+	iter := manager.Connection.Run(*manager.Context, q)
+
+	var att Attachment
+	for {
+		_, err := iter.Next(&att)
+
+		if err == iterator.Done {
+			break
+		}
+
+		if err != nil {
+			logManager.LogPrintf("Got error when attempting to get incident %v\n", err)
+			break
+		}
+
+		retVal = append(retVal, att)
+	}
+
+	return retVal, true
 }
 
 func (manager DataStoreIncidentManager) RemoveAttachment(incidentId int, fileName string) bool {
@@ -135,5 +223,7 @@ func (manager DataStoreIncidentManager) RemoveAttachment(incidentId int, fileNam
 }
 
 func (manager DataStoreIncidentManager) CleanUp() {
-
+	if manager.Connection != nil {
+		manager.Connection.Close()
+	}
 }

@@ -1,5 +1,5 @@
 {
-    "incidentmanagertype": 2,
+    "incidentmanagertype": 3,
     "filemanagertype": 0,
     "dynamodb": {
         "region": "us-east-1"
@@ -10,6 +10,10 @@
         "host": "127.0.0.1",
         "port": "3306",
         "dbname": "sona"
+    },
+    "datastore": {
+        "projectname": "sona-181109",
+        "authfile": "creds.json"
     },
     "fileconfig" : {
         "path": ""

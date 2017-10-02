@@ -196,7 +196,7 @@ func (manager DataStoreIncidentManager) AddAttachment(incidentId int, attachment
 
 func (manager DataStoreIncidentManager) GetAttachments(incidentId int) ([]Attachment, bool) {
 	retVal := make([]Attachment, 0)
-	q := datastore.NewQuery("incidentattachments").Filter("Id =", incidentId)
+	q := datastore.NewQuery("incidentattachments").Ancestor(datastore.NameKey("incidents", strconv.Itoa(incidentId), nil))
 	iter := manager.Connection.Run(*manager.Context, q)
 
 	var att Attachment
@@ -219,6 +219,18 @@ func (manager DataStoreIncidentManager) GetAttachments(incidentId int) ([]Attach
 }
 
 func (manager DataStoreIncidentManager) RemoveAttachment(incidentId int, fileName string) bool {
+	parentKey := datastore.NameKey("incidents", strconv.Itoa(incidentId), nil)
+	taskKey := datastore.NameKey("incidentattachments", fileName, parentKey)
+
+	logManager.LogPrintln("Attempting to remove incident attachment from database")
+
+	err := manager.Connection.Delete(*manager.Context, taskKey)
+
+	if err != nil {
+		logManager.LogPrintf("Unable to delete attachment %v", err)
+		return false
+	}
+
 	return true
 }
 

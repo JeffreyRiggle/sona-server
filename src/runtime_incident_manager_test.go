@@ -109,7 +109,7 @@ func TestGetIncidents(t *testing.T) {
 	manager.AddIncident(&incident1)
 	manager.AddIncident(&incident2)
 
-	retVal, pass := manager.GetIncidents()
+	retVal, pass := manager.GetIncidents(nil)
 
 	if !pass {
 		t.Error(

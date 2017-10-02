@@ -413,7 +413,7 @@ func (manager DynamoDBIncidentManager) getIncidentFromDataBase(incidentId int) (
 // GetIncidents will attempt to get all incidents out of dynamodb.
 // If the attempt fails an empty array and a false will be returned.
 // If the attempt passes a array of incidents and a true will be returned.
-func (manager DynamoDBIncidentManager) GetIncidents() ([]Incident, bool) {
+func (manager DynamoDBIncidentManager) GetIncidents(filter *FilterRequest) ([]Incident, bool) {
 	incidents, err := manager.getAllIncidents()
 
 	if err != nil {

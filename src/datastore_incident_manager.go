@@ -127,7 +127,7 @@ func (manager DataStoreIncidentManager) GetIncident(incidentId int) (Incident, b
 	return convertToIncident(&incident), true
 }
 
-func (manager DataStoreIncidentManager) GetIncidents() ([]Incident, bool) {
+func (manager DataStoreIncidentManager) GetIncidents(filter *FilterRequest) ([]Incident, bool) {
 	retVal := make([]Incident, 0)
 
 	q := datastore.NewQuery("incidents")

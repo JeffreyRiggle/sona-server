@@ -173,7 +173,7 @@ func (manager MySQLManager) GetIncident(incidentId int) (Incident, bool) {
 	return retVal, true
 }
 
-func (manager MySQLManager) GetIncidents() ([]Incident, bool) {
+func (manager MySQLManager) GetIncidents(filter *FilterRequest) ([]Incident, bool) {
 	incidents := make(map[int64]Incident, 0)
 	var (
 		id           int64

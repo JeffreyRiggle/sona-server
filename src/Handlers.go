@@ -326,7 +326,15 @@ func HandleGetIncidents(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Access-Control-Allow-Origin", "*")
 	w.Header().Set("Content-Type", "application/json;charset=UTF-8")
 
-	if val, ok := incidentManager.GetIncidents(); ok {
+	filter, passed := convertFilter(r.Body)
+
+	if !passed {
+		logManager.LogPrintln("Invalid filter for get request")
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+
+	if val, ok := incidentManager.GetIncidents(filter); ok {
 		logManager.LogPrintf("Found %v incidents\n", len(val))
 
 		w.WriteHeader(http.StatusOK)
@@ -340,4 +348,24 @@ func HandleGetIncidents(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.WriteHeader(http.StatusInternalServerError)
+}
+
+func convertFilter(body io.ReadCloser) (*FilterRequest, bool) {
+	if body == nil {
+		return nil, true
+	}
+
+	decoder := json.NewDecoder(body)
+
+	var filter FilterRequest
+	err := decoder.Decode(&filter)
+
+	switch {
+	case err == io.EOF:
+		return nil, true
+	case err != nil:
+		return &filter, false
+	}
+
+	return &filter, true
 }

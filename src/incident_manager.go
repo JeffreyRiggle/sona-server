@@ -12,7 +12,7 @@ package main
 type IncidentManager interface {
 	AddIncident(incident *Incident) bool
 	GetIncident(incidentId int) (Incident, bool)
-	GetIncidents() ([]Incident, bool)
+	GetIncidents(filter *FilterRequest) ([]Incident, bool)
 	UpdateIncident(id int, incident IncidentUpdate) bool
 	AddAttachment(incidentId int, attachment Attachment) bool
 	GetAttachments(incidentId int) ([]Attachment, bool)

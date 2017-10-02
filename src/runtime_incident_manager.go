@@ -30,7 +30,7 @@ func (manager RuntimeIncidentManager) GetIncident(incidentId int) (Incident, boo
 }
 
 // GetIncidents will get all incidents out of the runtimes incident collection.
-func (manager RuntimeIncidentManager) GetIncidents() ([]Incident, bool) {
+func (manager RuntimeIncidentManager) GetIncidents(filter *FilterRequest) ([]Incident, bool) {
 	retVal := make([]Incident, 0)
 
 	for _, v := range manager.Incidents {

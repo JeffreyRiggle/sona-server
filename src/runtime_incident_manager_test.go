@@ -126,6 +126,248 @@ func TestGetIncidents(t *testing.T) {
 	}
 }
 
+func TestGetIncidentsWithPartialSimpleFilter(t *testing.T) {
+	var manager = RuntimeIncidentManager{make(map[int64]*Incident, 0), make(map[int][]Attachment, 0)}
+	var incident1 = Incident{"Incident", 0, "Some Description", "Sally", "Open", make(map[string]string, 0)}
+	var incident2 = Incident{"Incident", 2, "Description", "Jake", "Closed", make(map[string]string, 0)}
+	manager.AddIncident(&incident1)
+	manager.AddIncident(&incident2)
+
+	filter := FilterRequest{
+		Filters: []ComplexFilter{
+			{
+				Filter: &Filter{
+					Property:       "state",
+					ComparisonType: "equals",
+					Value:          "Open",
+				},
+			},
+		},
+		Junction: "and",
+	}
+
+	retVal, pass := manager.GetIncidents(&filter)
+
+	if !pass {
+		t.Error(
+			"For", pass,
+			"expected", true,
+			"got", pass)
+	}
+
+	if len(retVal) != 1 {
+		t.Error(
+			"For", retVal,
+			"expected", 1,
+			"got", len(retVal))
+	}
+
+	if retVal[0].Id != 0 {
+		t.Error(
+			"For", retVal[0],
+			"expected", 0,
+			"got", retVal[0].Id)
+	}
+}
+
+func TestGetIncidentsWithFullSimpleOrFilter(t *testing.T) {
+	var manager = RuntimeIncidentManager{make(map[int64]*Incident, 0), make(map[int][]Attachment, 0)}
+	var incident1 = Incident{"Incident", 0, "Some Description", "Sally", "Open", make(map[string]string, 0)}
+	var incident2 = Incident{"Incident", 2, "Description", "Jake", "Closed", make(map[string]string, 0)}
+	manager.AddIncident(&incident1)
+	manager.AddIncident(&incident2)
+
+	filter := FilterRequest{
+		Filters: []ComplexFilter{
+			{
+				Filter: &Filter{
+					Property:       "state",
+					ComparisonType: "equals",
+					Value:          "Open",
+				},
+				Junction: "or",
+				AdditionalFilter: &Filter{
+					Property:       "reporter",
+					ComparisonType: "equals",
+					Value:          "Jake",
+				},
+			},
+		},
+		Junction: "and",
+	}
+
+	retVal, pass := manager.GetIncidents(&filter)
+
+	if !pass {
+		t.Error(
+			"For", pass,
+			"expected", true,
+			"got", pass)
+	}
+
+	if len(retVal) != 2 {
+		t.Error(
+			"For", retVal,
+			"expected", 2,
+			"got", len(retVal))
+	}
+}
+
+func TestGetIncidentsWithFullSimpleAndFilter(t *testing.T) {
+	var manager = RuntimeIncidentManager{make(map[int64]*Incident, 0), make(map[int][]Attachment, 0)}
+	var incident1 = Incident{"Incident", 0, "Some Description", "Sally", "Open", make(map[string]string, 0)}
+	var incident2 = Incident{"Incident", 2, "Description", "Jake", "Closed", make(map[string]string, 0)}
+	manager.AddIncident(&incident1)
+	manager.AddIncident(&incident2)
+
+	filter := FilterRequest{
+		Filters: []ComplexFilter{
+			{
+				Filter: &Filter{
+					Property:       "state",
+					ComparisonType: "equals",
+					Value:          "Open",
+				},
+				Junction: "and",
+				AdditionalFilter: &Filter{
+					Property:       "reporter",
+					ComparisonType: "equals",
+					Value:          "Jake",
+				},
+			},
+		},
+		Junction: "and",
+	}
+
+	retVal, pass := manager.GetIncidents(&filter)
+
+	if !pass {
+		t.Error(
+			"For", pass,
+			"expected", true,
+			"got", pass)
+	}
+
+	if len(retVal) != 0 {
+		t.Error(
+			"For", retVal,
+			"expected", 0,
+			"got", len(retVal))
+	}
+}
+
+func TestGetIncidentsWithFullComplexAndFilter(t *testing.T) {
+	var manager = RuntimeIncidentManager{make(map[int64]*Incident, 0), make(map[int][]Attachment, 0)}
+	var incident1 = Incident{"Incident", 0, "Some Description", "Sally", "Open", make(map[string]string, 0)}
+	var incident2 = Incident{"Incident", 2, "Description", "Jake", "Closed", make(map[string]string, 0)}
+	manager.AddIncident(&incident1)
+	manager.AddIncident(&incident2)
+
+	filter := FilterRequest{
+		Filters: []ComplexFilter{
+			{
+				Filter: &Filter{
+					Property:       "state",
+					ComparisonType: "equals",
+					Value:          "Open",
+				},
+				Junction: "and",
+				AdditionalFilter: &Filter{
+					Property:       "reporter",
+					ComparisonType: "equals",
+					Value:          "Sally",
+				},
+			},
+			{
+				Filter: &Filter{
+					Property:       "state",
+					ComparisonType: "equals",
+					Value:          "Closed",
+				},
+				Junction: "and",
+				AdditionalFilter: &Filter{
+					Property:       "reporter",
+					ComparisonType: "equals",
+					Value:          "Jake",
+				},
+			},
+		},
+		Junction: "and",
+	}
+
+	retVal, pass := manager.GetIncidents(&filter)
+
+	if !pass {
+		t.Error(
+			"For", pass,
+			"expected", true,
+			"got", pass)
+	}
+
+	if len(retVal) != 0 {
+		t.Error(
+			"For", retVal,
+			"expected", 0,
+			"got", len(retVal))
+	}
+}
+
+func TestGetIncidentsWithFullComplexOrFilter(t *testing.T) {
+	var manager = RuntimeIncidentManager{make(map[int64]*Incident, 0), make(map[int][]Attachment, 0)}
+	var incident1 = Incident{"Incident", 0, "Some Description", "Sally", "Open", make(map[string]string, 0)}
+	var incident2 = Incident{"Incident", 2, "Description", "Jake", "Closed", make(map[string]string, 0)}
+	manager.AddIncident(&incident1)
+	manager.AddIncident(&incident2)
+
+	filter := FilterRequest{
+		Filters: []ComplexFilter{
+			{
+				Filter: &Filter{
+					Property:       "state",
+					ComparisonType: "equals",
+					Value:          "Open",
+				},
+				Junction: "and",
+				AdditionalFilter: &Filter{
+					Property:       "reporter",
+					ComparisonType: "equals",
+					Value:          "Sally",
+				},
+			},
+			{
+				Filter: &Filter{
+					Property:       "state",
+					ComparisonType: "equals",
+					Value:          "Closed",
+				},
+				Junction: "and",
+				AdditionalFilter: &Filter{
+					Property:       "reporter",
+					ComparisonType: "equals",
+					Value:          "Jake",
+				},
+			},
+		},
+		Junction: "or",
+	}
+
+	retVal, pass := manager.GetIncidents(&filter)
+
+	if !pass {
+		t.Error(
+			"For", pass,
+			"expected", true,
+			"got", pass)
+	}
+
+	if len(retVal) != 2 {
+		t.Error(
+			"For", retVal,
+			"expected", 2,
+			"got", len(retVal))
+	}
+}
+
 func TestUpdateIncident(t *testing.T) {
 	var manager = RuntimeIncidentManager{make(map[int64]*Incident, 0), make(map[int][]Attachment, 0)}
 	var incident = Incident{"Incident", 0, "Some Description", "Someone", "Open", make(map[string]string, 0)}

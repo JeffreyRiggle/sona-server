@@ -1,5 +1,9 @@
 package main
 
+import (
+	"strings"
+)
+
 // RuntimeIncidentManager manages incidents in the applications runtime.
 // These incidents will no longer be available after the application shuts down.
 type RuntimeIncidentManager struct {
@@ -34,10 +38,69 @@ func (manager RuntimeIncidentManager) GetIncidents(filter *FilterRequest) ([]Inc
 	retVal := make([]Incident, 0)
 
 	for _, v := range manager.Incidents {
-		retVal = append(retVal, *v)
+		if incidentInFilterRequest(*v, filter) {
+			retVal = append(retVal, *v)
+		}
 	}
 
 	return retVal, true
+}
+
+func incidentInFilterRequest(incident Incident, filter *FilterRequest) bool {
+	if filter == nil {
+		return true
+	}
+
+	if isOrRequest(filter) {
+		for _, k := range filter.Filters {
+			if incidentInComplexFilter(incident, k) {
+				return true
+			}
+		}
+
+		return false
+	}
+
+	for _, k := range filter.Filters {
+		if !incidentInComplexFilter(incident, k) {
+			return false
+		}
+	}
+
+	return true
+}
+
+func incidentInComplexFilter(incident Incident, filter ComplexFilter) bool {
+	inFilter1 := incidentInFilter(incident, *filter.Filter)
+
+	if len(filter.Junction) == 0 || filter.AdditionalFilter == nil {
+		return inFilter1
+	}
+
+	inFilter2 := incidentInFilter(incident, *filter.AdditionalFilter)
+
+	if isOrFilter(filter) {
+		return inFilter1 || inFilter2
+	}
+
+	return inFilter1 && inFilter2
+}
+
+func incidentInFilter(incident Incident, filter Filter) bool {
+	val := getIncidentPropertyValue(filter.Property, incident)
+	if isEqualsComparision(filter) {
+		return strings.EqualFold(filter.Value, val)
+	}
+
+	if isContainsComparision(filter) {
+		return strings.Contains(strings.ToLower(val), strings.ToLower(filter.Value))
+	}
+
+	if isNotEqualsComparision(filter) {
+		return !strings.EqualFold(filter.Value, val)
+	}
+
+	return false
 }
 
 // UpdateIncident will update a given incident in the runtime.

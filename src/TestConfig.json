@@ -1,5 +1,5 @@
 {
-    "incidentmanagertype": 2,
+    "incidentmanagertype": 3,
     "filemanagertype": 0,
     "dynamodb": {
         "region": "us-east-1"

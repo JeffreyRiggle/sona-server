@@ -246,7 +246,7 @@ func (manager MySQLManager) queryIncidentsWithFilter(filter *FilterRequest) (*sq
 			if iter != 0 {
 				buffer.WriteString("AND ")
 			}
-			buffer.WriteString(complexFilter.Property + convertComparisonType(complexFilter))
+			buffer.WriteString(complexFilter.Property + convertToSQLComparisonType(complexFilter))
 			args = append(args, complexFilter.Value)
 		}
 	}
@@ -263,7 +263,7 @@ func (manager MySQLManager) queryIncidentsWithFilter(filter *FilterRequest) (*sq
 		"ORDER BY Id", args...)
 }
 
-func convertComparisonType(filter Filter) string {
+func convertToSQLComparisonType(filter Filter) string {
 	if isEqualsComparision(filter) {
 		return " = ? "
 	}

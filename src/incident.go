@@ -1,6 +1,7 @@
 package main
 
 import "strconv"
+import "strings"
 
 // Incident defines the basic item for managing and tracking issues.
 type Incident struct {
@@ -46,16 +47,16 @@ func updateIncident(original *Incident, updated IncidentUpdate) bool {
 }
 
 func getIncidentPropertyValue(key string, incident Incident) string {
-	if key == "id" {
+	if strings.EqualFold(key, "id") {
 		return strconv.FormatInt(incident.Id, 10)
 	}
-	if key == "reporter" {
+	if strings.EqualFold(key, "reporter") {
 		return incident.Reporter
 	}
-	if key == "description" {
+	if strings.EqualFold(key, "description") {
 		return incident.Description
 	}
-	if key == "state" {
+	if strings.EqualFold(key, "state") {
 		return incident.State
 	}
 

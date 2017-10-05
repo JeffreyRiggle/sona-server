@@ -71,19 +71,23 @@ func incidentInFilterRequest(incident Incident, filter *FilterRequest) bool {
 }
 
 func incidentInComplexFilter(incident Incident, filter ComplexFilter) bool {
-	inFilter1 := incidentInFilter(incident, *filter.Filter)
-
-	if len(filter.Junction) == 0 || filter.AdditionalFilter == nil {
-		return inFilter1
-	}
-
-	inFilter2 := incidentInFilter(incident, *filter.AdditionalFilter)
-
 	if isOrFilter(filter) {
-		return inFilter1 || inFilter2
+		for _, v := range filter.Filter {
+			if incidentInFilter(incident, v) {
+				return true
+			}
+		}
+
+		return false
 	}
 
-	return inFilter1 && inFilter2
+	for _, v := range filter.Filter {
+		if !incidentInFilter(incident, v) {
+			return false
+		}
+	}
+
+	return true
 }
 
 func incidentInFilter(incident Incident, filter Filter) bool {

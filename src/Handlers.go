@@ -326,12 +326,16 @@ func HandleGetIncidents(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Access-Control-Allow-Origin", "*")
 	w.Header().Set("Content-Type", "application/json;charset=UTF-8")
 
-	filter, passed := convertFilter(r.Body)
+	filter, passed := convertFilter(r)
 
 	if !passed {
 		logManager.LogPrintln("Invalid filter for get request")
 		w.WriteHeader(http.StatusBadRequest)
 		return
+	}
+
+	if filter != nil {
+		logManager.LogPrintf("Using filter %+v\n", *filter)
 	}
 
 	if val, ok := incidentManager.GetIncidents(filter); ok {
@@ -350,22 +354,32 @@ func HandleGetIncidents(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusInternalServerError)
 }
 
-func convertFilter(body io.ReadCloser) (*FilterRequest, bool) {
-	if body == nil {
+func convertFilter(r *http.Request) (*FilterRequest, bool) {
+	param := r.URL.Query()["filter"]
+	if param == nil {
+		logManager.LogPrintln("Unable to find filter param")
 		return nil, true
 	}
 
-	decoder := json.NewDecoder(body)
+	/*if err := r.ParseForm(); err != nil {
+		logManager.LogPrintf("Unable to parse form: %v\n", err)
+		return nil, false
+	}*/
 
-	var filter FilterRequest
-	err := decoder.Decode(&filter)
+	logManager.LogPrintf("got param: %v\n", param[0])
 
-	switch {
-	case err == io.EOF:
-		return nil, true
-	case err != nil:
-		return &filter, false
+	//data, err := json.Marshal(param[0])
+
+	/*if err != nil {
+		logManager.LogPrintf("Unable to marshal param: %v\n", err)
+		return nil, false
+	}*/
+
+	filter := new(FilterRequest)
+	if err := json.Unmarshal([]byte(param[0]), filter); err != nil {
+		logManager.LogPrintf("Unable to unmarshal param: %v\n", err)
+		return nil, false
 	}
 
-	return &filter, true
+	return filter, true
 }

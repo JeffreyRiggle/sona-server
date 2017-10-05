@@ -4,19 +4,18 @@ import "strings"
 
 type Filter struct {
 	Property       string `json:"property"`
-	ComparisonType string `json:"comparisontype"`
+	ComparisonType string `json:"comparison"`
 	Value          string `json:"value"`
 }
 
 type ComplexFilter struct {
-	Filter           *Filter `json:"filter"`
-	Junction         string  `json:"junction"`
-	AdditionalFilter *Filter `json:"additionalFilter"`
+	Filter   []Filter `json:"filters"`
+	Junction string   `json:"junction"`
 }
 
 type FilterRequest struct {
-	Filters  []ComplexFilter `json:"filters"`
-	Junction string          `json:"junction"`
+	Filters  []ComplexFilter `json:"complexfilters"`
+	Junction string          `json:"union"`
 }
 
 func isOrRequest(filter *FilterRequest) bool {

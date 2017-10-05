@@ -136,10 +136,12 @@ func TestGetIncidentsWithPartialSimpleFilter(t *testing.T) {
 	filter := FilterRequest{
 		Filters: []ComplexFilter{
 			{
-				Filter: &Filter{
-					Property:       "state",
-					ComparisonType: "equals",
-					Value:          "Open",
+				Filter: []Filter{
+					{
+						Property:       "state",
+						ComparisonType: "equals",
+						Value:          "Open",
+					},
 				},
 			},
 		},
@@ -180,17 +182,19 @@ func TestGetIncidentsWithFullSimpleOrFilter(t *testing.T) {
 	filter := FilterRequest{
 		Filters: []ComplexFilter{
 			{
-				Filter: &Filter{
-					Property:       "state",
-					ComparisonType: "equals",
-					Value:          "Open",
+				Filter: []Filter{
+					{
+						Property:       "state",
+						ComparisonType: "equals",
+						Value:          "Open",
+					},
+					{
+						Property:       "reporter",
+						ComparisonType: "equals",
+						Value:          "Jake",
+					},
 				},
 				Junction: "or",
-				AdditionalFilter: &Filter{
-					Property:       "reporter",
-					ComparisonType: "equals",
-					Value:          "Jake",
-				},
 			},
 		},
 		Junction: "and",
@@ -223,17 +227,19 @@ func TestGetIncidentsWithFullSimpleAndFilter(t *testing.T) {
 	filter := FilterRequest{
 		Filters: []ComplexFilter{
 			{
-				Filter: &Filter{
-					Property:       "state",
-					ComparisonType: "equals",
-					Value:          "Open",
+				Filter: []Filter{
+					{
+						Property:       "state",
+						ComparisonType: "equals",
+						Value:          "Open",
+					},
+					{
+						Property:       "reporter",
+						ComparisonType: "equals",
+						Value:          "Jake",
+					},
 				},
 				Junction: "and",
-				AdditionalFilter: &Filter{
-					Property:       "reporter",
-					ComparisonType: "equals",
-					Value:          "Jake",
-				},
 			},
 		},
 		Junction: "and",
@@ -266,30 +272,34 @@ func TestGetIncidentsWithFullComplexAndFilter(t *testing.T) {
 	filter := FilterRequest{
 		Filters: []ComplexFilter{
 			{
-				Filter: &Filter{
-					Property:       "state",
-					ComparisonType: "equals",
-					Value:          "Open",
+				Filter: []Filter{
+					{
+						Property:       "state",
+						ComparisonType: "equals",
+						Value:          "Open",
+					},
+					{
+						Property:       "reporter",
+						ComparisonType: "equals",
+						Value:          "Sally",
+					},
 				},
 				Junction: "and",
-				AdditionalFilter: &Filter{
-					Property:       "reporter",
-					ComparisonType: "equals",
-					Value:          "Sally",
-				},
 			},
 			{
-				Filter: &Filter{
-					Property:       "state",
-					ComparisonType: "equals",
-					Value:          "Closed",
+				Filter: []Filter{
+					{
+						Property:       "state",
+						ComparisonType: "equals",
+						Value:          "Closed",
+					},
+					{
+						Property:       "reporter",
+						ComparisonType: "equals",
+						Value:          "Jake",
+					},
 				},
 				Junction: "and",
-				AdditionalFilter: &Filter{
-					Property:       "reporter",
-					ComparisonType: "equals",
-					Value:          "Jake",
-				},
 			},
 		},
 		Junction: "and",
@@ -322,30 +332,34 @@ func TestGetIncidentsWithFullComplexOrFilter(t *testing.T) {
 	filter := FilterRequest{
 		Filters: []ComplexFilter{
 			{
-				Filter: &Filter{
-					Property:       "state",
-					ComparisonType: "equals",
-					Value:          "Open",
+				Filter: []Filter{
+					{
+						Property:       "state",
+						ComparisonType: "equals",
+						Value:          "Open",
+					},
+					{
+						Property:       "reporter",
+						ComparisonType: "equals",
+						Value:          "Sally",
+					},
 				},
 				Junction: "and",
-				AdditionalFilter: &Filter{
-					Property:       "reporter",
-					ComparisonType: "equals",
-					Value:          "Sally",
-				},
 			},
 			{
-				Filter: &Filter{
-					Property:       "state",
-					ComparisonType: "equals",
-					Value:          "Closed",
+				Filter: []Filter{
+					{
+						Property:       "state",
+						ComparisonType: "equals",
+						Value:          "Closed",
+					},
+					{
+						Property:       "reporter",
+						ComparisonType: "equals",
+						Value:          "Jake",
+					},
 				},
 				Junction: "and",
-				AdditionalFilter: &Filter{
-					Property:       "reporter",
-					ComparisonType: "equals",
-					Value:          "Jake",
-				},
 			},
 		},
 		Junction: "or",

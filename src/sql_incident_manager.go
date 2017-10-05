@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bytes"
 	"database/sql"
 	"fmt"
 )
@@ -189,10 +190,7 @@ func (manager MySQLManager) GetIncidents(filter *FilterRequest) ([]Incident, boo
 		logManager.LogFatalln("Connection is nil")
 	}
 
-	rows, err := manager.Connection.Query("SELECT Id, Type, Description, Reporter, State, AttributeName, AttributeValue " +
-		"FROM incidents LEFT JOIN incidentattributes " +
-		"ON IncidentId = Id " +
-		"ORDER BY Id")
+	rows, err := manager.queryIncidentsWithFilter(filter)
 
 	if err != nil {
 		logManager.LogPrintf("Error occurred when preparing get %v\n", err)
@@ -226,6 +224,55 @@ func (manager MySQLManager) GetIncidents(filter *FilterRequest) ([]Incident, boo
 	}
 	logManager.LogPrintf("got incidents: %v\n", retVal)
 	return retVal, true
+}
+
+func (manager MySQLManager) queryIncidentsWithFilter(filter *FilterRequest) (*sql.Rows, error) {
+	if filter == nil {
+		return manager.Connection.Query("SELECT Id, Type, Description, Reporter, State, AttributeName, AttributeValue " +
+			"FROM incidents LEFT JOIN incidentattributes " +
+			"ON IncidentId = Id " +
+			"ORDER BY Id")
+	}
+
+	var buffer bytes.Buffer
+	args := make([]interface{}, 0)
+	buffer.WriteString("WHERE ")
+
+	for i, filter := range filter.Filters {
+		if i != 0 {
+			buffer.WriteString("AND ")
+		}
+		for iter, complexFilter := range filter.Filter {
+			if iter != 0 {
+				buffer.WriteString("AND ")
+			}
+			buffer.WriteString(complexFilter.Property + convertComparisonType(complexFilter))
+			args = append(args, complexFilter.Value)
+		}
+	}
+
+	buffer.WriteString(" ")
+
+	logManager.LogPrintf("Attempting to query with request %v\n", buffer.String())
+
+	return manager.Connection.Query("SELECT Id, Type, Description, Reporter, State, AttributeName, AttributeValue "+
+		"FROM incidents "+
+		"LEFT JOIN incidentattributes "+
+		"ON IncidentId = Id "+
+		buffer.String()+
+		"ORDER BY Id", args...)
+}
+
+func convertComparisonType(filter Filter) string {
+	if isEqualsComparision(filter) {
+		return " = ? "
+	}
+
+	if isNotEqualsComparision(filter) {
+		return " != ? "
+	}
+
+	return " IN(?) "
 }
 
 func (manager MySQLManager) UpdateIncident(id int, incident IncidentUpdate) bool {

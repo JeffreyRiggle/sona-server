@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"fmt"
 	"strconv"
+	"strings"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/awserr"
@@ -328,7 +329,7 @@ func buildAWSFilterString(filter *FilterRequest) (string, map[string]*string, ma
 			}
 
 			nIt := strconv.Itoa(nameIter)
-			attributeNames["#name"+nIt] = aws.String(complexFilter.Property)
+			attributeNames["#name"+nIt] = aws.String(strings.ToLower(complexFilter.Property))
 			attributeValues[":value"+nIt] = &dynamodb.AttributeValue{
 				S: aws.String(complexFilter.Value),
 			}

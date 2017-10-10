@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bytes"
 	"fmt"
 	"strconv"
 
@@ -280,6 +281,73 @@ func (manager DynamoDBIncidentManager) getAllIncidents() ([]Incident, error) {
 	return incidents, err
 }
 
+func (manager DynamoDBIncidentManager) getFilteredIncidents(filter *FilterRequest) ([]Incident, error) {
+	var incidents []Incident
+
+	svc := CreateService(*manager.Region)
+
+	queryString := buildAWSFilterString(filter)
+
+	logManager.LogPrintf("Attempting to query dynamodb with %v\n", queryString)
+
+	var resp, err = svc.Query(&dynamodb.QueryInput{
+		TableName:        aws.String(*manager.IncidentTable),
+		FilterExpression: aws.String(queryString),
+	})
+
+	if err != nil {
+		if aerr, ok := err.(awserr.Error); ok {
+			switch aerr.Code() {
+			case dynamodb.ErrCodeProvisionedThroughputExceededException:
+				logManager.LogPrintln(dynamodb.ErrCodeProvisionedThroughputExceededException, aerr.Error())
+			case dynamodb.ErrCodeResourceNotFoundException:
+				logManager.LogPrintln(dynamodb.ErrCodeResourceNotFoundException, aerr.Error())
+			case dynamodb.ErrCodeInternalServerError:
+				logManager.LogPrintln(dynamodb.ErrCodeInternalServerError, aerr.Error())
+			default:
+				logManager.LogPrintf("Got generic aws error, %v\n", aerr.Error())
+			}
+		} else {
+			logManager.LogPrintf("Got generic error, %v\n", err.Error())
+		}
+
+		return make([]Incident, 0), err
+	}
+
+	dynamodbattribute.UnmarshalListOfMaps(resp.Items, &incidents)
+	return incidents, err
+}
+
+func buildAWSFilterString(filter *FilterRequest) string {
+	var buffer bytes.Buffer
+
+	for i, filter := range filter.Filters {
+		if i != 0 {
+			buffer.WriteString("AND ")
+		}
+		for iter, complexFilter := range filter.Filter {
+			if iter != 0 {
+				buffer.WriteString("AND ")
+			}
+			buffer.WriteString(complexFilter.Property + convertToDynamoComparisonType(complexFilter))
+		}
+	}
+
+	return buffer.String()
+}
+
+func convertToDynamoComparisonType(filter Filter) string {
+	if isEqualsComparision(filter) {
+		return " = "
+	}
+
+	if isNotEqualsComparision(filter) {
+		return " != "
+	}
+
+	return " Contains "
+}
+
 // GetIncident will attempt to get the requested incident out of dynamodb.
 // If the attempt fails a empty incident will be returned along with a false.
 // If the attempt fails the incident will be returned along with a true.
@@ -414,7 +482,17 @@ func (manager DynamoDBIncidentManager) getIncidentFromDataBase(incidentId int) (
 // If the attempt fails an empty array and a false will be returned.
 // If the attempt passes a array of incidents and a true will be returned.
 func (manager DynamoDBIncidentManager) GetIncidents(filter *FilterRequest) ([]Incident, bool) {
-	incidents, err := manager.getAllIncidents()
+
+	var (
+		incidents []Incident
+		err       error
+	)
+
+	if filter == nil {
+		incidents, err = manager.getAllIncidents()
+	} else {
+		incidents, err = manager.getFilteredIncidents(filter)
+	}
 
 	if err != nil {
 		if aerr, ok := err.(awserr.Error); ok {

@@ -329,15 +329,12 @@ func buildAWSFilterString(filter *FilterRequest) (string, map[string]*string, ma
 
 			nIt := strconv.Itoa(nameIter)
 			attributeNames["#name"+nIt] = aws.String(complexFilter.Property)
-			buffer.WriteString("#name" + nIt)
-
-			buffer.WriteString(convertToDynamoComparisonType(complexFilter))
-
 			attributeValues[":value"+nIt] = &dynamodb.AttributeValue{
 				S: aws.String(complexFilter.Value),
 			}
 
-			buffer.WriteString(":value" + nIt + " ")
+			buffer.WriteString(convertDynamoFilterExpression(complexFilter, "#name"+nIt, ":value"+nIt))
+			buffer.WriteString(" ")
 			nameIter++
 		}
 	}
@@ -345,16 +342,16 @@ func buildAWSFilterString(filter *FilterRequest) (string, map[string]*string, ma
 	return buffer.String(), attributeNames, attributeValues
 }
 
-func convertToDynamoComparisonType(filter Filter) string {
+func convertDynamoFilterExpression(filter Filter, name string, value string) string {
 	if isEqualsComparision(filter) {
-		return " = "
+		return name + " = " + value
 	}
 
 	if isNotEqualsComparision(filter) {
-		return " <> "
+		return name + " <> " + value
 	}
 
-	return " Contains "
+	return "contains( " + name + ", " + value + " )"
 }
 
 // GetIncident will attempt to get the requested incident out of dynamodb.

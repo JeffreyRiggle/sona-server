@@ -361,19 +361,7 @@ func convertFilter(r *http.Request) (*FilterRequest, bool) {
 		return nil, true
 	}
 
-	/*if err := r.ParseForm(); err != nil {
-		logManager.LogPrintf("Unable to parse form: %v\n", err)
-		return nil, false
-	}*/
-
 	logManager.LogPrintf("got param: %v\n", param[0])
-
-	//data, err := json.Marshal(param[0])
-
-	/*if err != nil {
-		logManager.LogPrintf("Unable to marshal param: %v\n", err)
-		return nil, false
-	}*/
 
 	filter := new(FilterRequest)
 	if err := json.Unmarshal([]byte(param[0]), filter); err != nil {

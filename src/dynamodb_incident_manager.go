@@ -1,8 +1,10 @@
 package main
 
 import (
+	"bytes"
 	"fmt"
 	"strconv"
+	"strings"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/awserr"
@@ -280,6 +282,79 @@ func (manager DynamoDBIncidentManager) getAllIncidents() ([]Incident, error) {
 	return incidents, err
 }
 
+func (manager DynamoDBIncidentManager) getFilteredIncidents(filter *FilterRequest) ([]Incident, error) {
+	var incidents []Incident
+
+	svc := CreateService(*manager.Region)
+
+	queryString, names, values := buildAWSFilterString(filter)
+
+	logManager.LogPrintf("Attempting to query dynamodb with %v\n", queryString)
+
+	err := svc.ScanPages(&dynamodb.ScanInput{
+		TableName:                 aws.String(*manager.IncidentTable),
+		ExpressionAttributeNames:  names,
+		ExpressionAttributeValues: values,
+		FilterExpression:          aws.String(queryString),
+	}, func(page *dynamodb.ScanOutput, last bool) bool {
+		incs := []Incident{}
+
+		err := dynamodbattribute.UnmarshalListOfMaps(page.Items, &incs)
+
+		if err != nil {
+			panic(fmt.Sprintf("failed to unmarshal items, %v", err))
+		}
+
+		incidents = append(incidents, incs...)
+
+		return true
+	})
+
+	return incidents, err
+}
+
+func buildAWSFilterString(filter *FilterRequest) (string, map[string]*string, map[string]*dynamodb.AttributeValue) {
+	var buffer bytes.Buffer
+	nameIter := 0
+	attributeNames := make(map[string]*string, 0)
+	attributeValues := make(map[string]*dynamodb.AttributeValue)
+
+	for i, filter := range filter.Filters {
+		if i != 0 {
+			buffer.WriteString("and ")
+		}
+		for iter, complexFilter := range filter.Filter {
+			if iter != 0 {
+				buffer.WriteString("and ")
+			}
+
+			nIt := strconv.Itoa(nameIter)
+			attributeNames["#name"+nIt] = aws.String(strings.ToLower(complexFilter.Property))
+			attributeValues[":value"+nIt] = &dynamodb.AttributeValue{
+				S: aws.String(complexFilter.Value),
+			}
+
+			buffer.WriteString(convertDynamoFilterExpression(complexFilter, "#name"+nIt, ":value"+nIt))
+			buffer.WriteString(" ")
+			nameIter++
+		}
+	}
+
+	return buffer.String(), attributeNames, attributeValues
+}
+
+func convertDynamoFilterExpression(filter Filter, name string, value string) string {
+	if isEqualsComparision(filter) {
+		return name + " = " + value
+	}
+
+	if isNotEqualsComparision(filter) {
+		return name + " <> " + value
+	}
+
+	return "contains( " + name + ", " + value + " )"
+}
+
 // GetIncident will attempt to get the requested incident out of dynamodb.
 // If the attempt fails a empty incident will be returned along with a false.
 // If the attempt fails the incident will be returned along with a true.
@@ -413,8 +488,18 @@ func (manager DynamoDBIncidentManager) getIncidentFromDataBase(incidentId int) (
 // GetIncidents will attempt to get all incidents out of dynamodb.
 // If the attempt fails an empty array and a false will be returned.
 // If the attempt passes a array of incidents and a true will be returned.
-func (manager DynamoDBIncidentManager) GetIncidents() ([]Incident, bool) {
-	incidents, err := manager.getAllIncidents()
+func (manager DynamoDBIncidentManager) GetIncidents(filter *FilterRequest) ([]Incident, bool) {
+
+	var (
+		incidents []Incident
+		err       error
+	)
+
+	if filter == nil {
+		incidents, err = manager.getAllIncidents()
+	} else {
+		incidents, err = manager.getFilteredIncidents(filter)
+	}
 
 	if err != nil {
 		if aerr, ok := err.(awserr.Error); ok {

@@ -326,7 +326,19 @@ func HandleGetIncidents(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Access-Control-Allow-Origin", "*")
 	w.Header().Set("Content-Type", "application/json;charset=UTF-8")
 
-	if val, ok := incidentManager.GetIncidents(); ok {
+	filter, passed := convertFilter(r)
+
+	if !passed {
+		logManager.LogPrintln("Invalid filter for get request")
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+
+	if filter != nil {
+		logManager.LogPrintf("Using filter %+v\n", *filter)
+	}
+
+	if val, ok := incidentManager.GetIncidents(filter); ok {
 		logManager.LogPrintf("Found %v incidents\n", len(val))
 
 		w.WriteHeader(http.StatusOK)
@@ -340,4 +352,22 @@ func HandleGetIncidents(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.WriteHeader(http.StatusInternalServerError)
+}
+
+func convertFilter(r *http.Request) (*FilterRequest, bool) {
+	param := r.URL.Query()["filter"]
+	if param == nil {
+		logManager.LogPrintln("Unable to find filter param")
+		return nil, true
+	}
+
+	logManager.LogPrintf("got param: %v\n", param[0])
+
+	filter := new(FilterRequest)
+	if err := json.Unmarshal([]byte(param[0]), filter); err != nil {
+		logManager.LogPrintf("Unable to unmarshal param: %v\n", err)
+		return nil, false
+	}
+
+	return filter, true
 }

@@ -67,37 +67,16 @@ func preformAddSubstitutionImpl(key string, incident Incident) string {
 	match := cRegEx.FindAllStringSubmatch(key, -1)
 
 	if len(match) <= 0 {
-		return getAddSubstitutionValue(key, incident)
+		return getIncidentPropertyValue(key, incident)
 	}
 
 	var retVal = key
 	for i := 0; i < len(match); i++ {
 		var replaceRegEx = regexp.MustCompile(match[i][0])
-		retVal = replaceRegEx.ReplaceAllString(retVal, getAddSubstitutionValue(match[i][1], incident))
+		retVal = replaceRegEx.ReplaceAllString(retVal, getIncidentPropertyValue(match[i][1], incident))
 	}
 
 	return retVal
-}
-
-func getAddSubstitutionValue(key string, incident Incident) string {
-	if key == "id" {
-		return strconv.FormatInt(incident.Id, 10)
-	}
-	if key == "reporter" {
-		return incident.Reporter
-	}
-	if key == "description" {
-		return incident.Description
-	}
-	if key == "state" {
-		return incident.State
-	}
-
-	if val, ok := incident.Attributes[key]; ok {
-		return val
-	}
-
-	return ""
 }
 
 func preformUpdateSubsitutions(hook WebHook, incidentID int, incident IncidentUpdate) *bytes.Buffer {

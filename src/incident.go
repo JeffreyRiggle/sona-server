@@ -1,5 +1,8 @@
 package main
 
+import "strconv"
+import "strings"
+
 // Incident defines the basic item for managing and tracking issues.
 type Incident struct {
 	Type        string            `json:"type"`        // The type of incident.
@@ -41,4 +44,25 @@ func updateIncident(original *Incident, updated IncidentUpdate) bool {
 	}
 
 	return changed
+}
+
+func getIncidentPropertyValue(key string, incident Incident) string {
+	if strings.EqualFold(key, "id") {
+		return strconv.FormatInt(incident.Id, 10)
+	}
+	if strings.EqualFold(key, "reporter") {
+		return incident.Reporter
+	}
+	if strings.EqualFold(key, "description") {
+		return incident.Description
+	}
+	if strings.EqualFold(key, "state") {
+		return incident.State
+	}
+
+	if val, ok := incident.Attributes[key]; ok {
+		return val
+	}
+
+	return ""
 }

@@ -127,7 +127,7 @@ func (manager DataStoreIncidentManager) GetIncident(incidentId int) (Incident, b
 	return convertToIncident(&incident), true
 }
 
-func (manager DataStoreIncidentManager) GetIncidents() ([]Incident, bool) {
+func (manager DataStoreIncidentManager) GetIncidents(filter *FilterRequest) ([]Incident, bool) {
 	retVal := make([]Incident, 0)
 
 	q := datastore.NewQuery("incidents")
@@ -146,7 +146,15 @@ func (manager DataStoreIncidentManager) GetIncidents() ([]Incident, bool) {
 			break
 		}
 
-		retVal = append(retVal, convertToIncident(&incident))
+		inc := convertToIncident(&incident)
+
+		// TODO: This is not ideal really we should be having datastore filter our values.
+		// However looking at the documentation it does not appear that there is a way
+		// to accomplish these complex filters. So for now we will pull everything and filter
+		// the values out later
+		if incidentInFilterRequest(inc, filter) {
+			retVal = append(retVal, inc)
+		}
 	}
 
 	return retVal, true

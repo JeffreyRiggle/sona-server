@@ -286,54 +286,63 @@ func (manager DynamoDBIncidentManager) getFilteredIncidents(filter *FilterReques
 
 	svc := CreateService(*manager.Region)
 
-	queryString := buildAWSFilterString(filter)
+	queryString, names, values := buildAWSFilterString(filter)
 
 	logManager.LogPrintf("Attempting to query dynamodb with %v\n", queryString)
 
-	var resp, err = svc.Query(&dynamodb.QueryInput{
-		TableName:        aws.String(*manager.IncidentTable),
-		FilterExpression: aws.String(queryString),
-	})
+	err := svc.ScanPages(&dynamodb.ScanInput{
+		TableName:                 aws.String(*manager.IncidentTable),
+		ExpressionAttributeNames:  names,
+		ExpressionAttributeValues: values,
+		FilterExpression:          aws.String(queryString),
+	}, func(page *dynamodb.ScanOutput, last bool) bool {
+		incs := []Incident{}
 
-	if err != nil {
-		if aerr, ok := err.(awserr.Error); ok {
-			switch aerr.Code() {
-			case dynamodb.ErrCodeProvisionedThroughputExceededException:
-				logManager.LogPrintln(dynamodb.ErrCodeProvisionedThroughputExceededException, aerr.Error())
-			case dynamodb.ErrCodeResourceNotFoundException:
-				logManager.LogPrintln(dynamodb.ErrCodeResourceNotFoundException, aerr.Error())
-			case dynamodb.ErrCodeInternalServerError:
-				logManager.LogPrintln(dynamodb.ErrCodeInternalServerError, aerr.Error())
-			default:
-				logManager.LogPrintf("Got generic aws error, %v\n", aerr.Error())
-			}
-		} else {
-			logManager.LogPrintf("Got generic error, %v\n", err.Error())
+		err := dynamodbattribute.UnmarshalListOfMaps(page.Items, &incs)
+
+		if err != nil {
+			panic(fmt.Sprintf("failed to unmarshal items, %v", err))
 		}
 
-		return make([]Incident, 0), err
-	}
+		incidents = append(incidents, incs...)
 
-	dynamodbattribute.UnmarshalListOfMaps(resp.Items, &incidents)
+		return true
+	})
+
 	return incidents, err
 }
 
-func buildAWSFilterString(filter *FilterRequest) string {
+func buildAWSFilterString(filter *FilterRequest) (string, map[string]*string, map[string]*dynamodb.AttributeValue) {
 	var buffer bytes.Buffer
+	nameIter := 0
+	attributeNames := make(map[string]*string, 0)
+	attributeValues := make(map[string]*dynamodb.AttributeValue)
 
 	for i, filter := range filter.Filters {
 		if i != 0 {
-			buffer.WriteString("AND ")
+			buffer.WriteString("and ")
 		}
 		for iter, complexFilter := range filter.Filter {
 			if iter != 0 {
-				buffer.WriteString("AND ")
+				buffer.WriteString("and ")
 			}
-			buffer.WriteString(complexFilter.Property + convertToDynamoComparisonType(complexFilter))
+
+			nIt := strconv.Itoa(nameIter)
+			attributeNames["#name"+nIt] = aws.String(complexFilter.Property)
+			buffer.WriteString("#name" + nIt)
+
+			buffer.WriteString(convertToDynamoComparisonType(complexFilter))
+
+			attributeValues[":value"+nIt] = &dynamodb.AttributeValue{
+				S: aws.String(complexFilter.Value),
+			}
+
+			buffer.WriteString(":value" + nIt + " ")
+			nameIter++
 		}
 	}
 
-	return buffer.String()
+	return buffer.String(), attributeNames, attributeValues
 }
 
 func convertToDynamoComparisonType(filter Filter) string {
@@ -342,7 +351,7 @@ func convertToDynamoComparisonType(filter Filter) string {
 	}
 
 	if isNotEqualsComparision(filter) {
-		return " != "
+		return " <> "
 	}
 
 	return " Contains "

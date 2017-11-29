@@ -71,6 +71,26 @@ func incidentInFilterRequest(incident Incident, filter *FilterRequest) bool {
 }
 
 func incidentInComplexFilter(incident Incident, filter ComplexFilter) bool {
+	if filter.Children != nil {
+		if isOrFilter(filter) {
+			for _, v := range filter.Children {
+				if incidentInComplexFilter(incident, *v) {
+					return true
+				}
+			}
+
+			return false
+		}
+
+		for _, v := range filter.Children {
+			if !incidentInComplexFilter(incident, *v) {
+				return false
+			}
+		}
+
+		return true
+	}
+
 	if isOrFilter(filter) {
 		for _, v := range filter.Filter {
 			if incidentInFilter(incident, v) {

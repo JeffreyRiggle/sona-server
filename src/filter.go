@@ -9,8 +9,9 @@ type Filter struct {
 }
 
 type ComplexFilter struct {
-	Filter   []Filter `json:"filters"`
-	Junction string   `json:"junction"`
+	Children []*ComplexFilter `json:"children"`
+	Filter   []Filter         `json:"filters"`
+	Junction string           `json:"junction"`
 }
 
 type FilterRequest struct {

@@ -71,7 +71,11 @@ func incidentInFilterRequest(incident Incident, filter *FilterRequest) bool {
 }
 
 func incidentInComplexFilter(incident Incident, filter ComplexFilter) bool {
+	logManager.LogPrintf("Processing complex filter %v\n", filter)
+
 	if filter.Children != nil {
+		logManager.LogPrintf("Processing complex filter with children %v\n", filter.Children)
+
 		if isOrFilter(filter) {
 			for _, v := range filter.Children {
 				if incidentInComplexFilter(incident, *v) {

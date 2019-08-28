@@ -1,0 +1,12 @@
+{
+    "index": "About.md",
+    "pages": {
+        "About": "About.md",
+        "API": "API.md",
+        "File Management": "ConfigureFileManager.md",
+        "Incident Management": "ConfigureIncidentManager.md",
+        "Logging": "ConfigureLogging.md",
+        "Web Hooks": "ConfigureWebHooks.md",
+        "Installation": "Install.md"
+    }
+}

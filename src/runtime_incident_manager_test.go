@@ -322,6 +322,71 @@ func TestGetIncidentsWithFullComplexAndFilter(t *testing.T) {
 	}
 }
 
+func TestGetIncidentsWithNestedComplexAndFilter(t *testing.T) {
+	var manager = RuntimeIncidentManager{make(map[int64]*Incident, 0), make(map[int][]Attachment, 0)}
+	var incident1 = Incident{"Incident", 0, "Some Description", "Sally", "Open", make(map[string]string, 0)}
+	var incident2 = Incident{"Incident", 2, "Description", "Jake", "Closed", make(map[string]string, 0)}
+	manager.AddIncident(&incident1)
+	manager.AddIncident(&incident2)
+
+	filter := FilterRequest{
+		Filters: []ComplexFilter{
+			{
+				Children: []*ComplexFilter{
+					{
+						Filter: []Filter{
+							{
+								Property:       "state",
+								ComparisonType: "equals",
+								Value:          "Open",
+							},
+							{
+								Property:       "reporter",
+								ComparisonType: "equals",
+								Value:          "Sally",
+							},
+						},
+						Junction: "and",
+					},
+					{
+						Filter: []Filter{
+							{
+								Property:       "state",
+								ComparisonType: "equals",
+								Value:          "Closed",
+							},
+							{
+								Property:       "reporter",
+								ComparisonType: "equals",
+								Value:          "Jake",
+							},
+						},
+						Junction: "and",
+					},
+				},
+				Junction: "and",
+			},
+		},
+		Junction: "and",
+	}
+
+	retVal, pass := manager.GetIncidents(&filter)
+
+	if !pass {
+		t.Error(
+			"For", pass,
+			"expected", true,
+			"got", pass)
+	}
+
+	if len(retVal) != 0 {
+		t.Error(
+			"For", retVal,
+			"expected", 0,
+			"got", len(retVal))
+	}
+}
+
 func TestGetIncidentsWithFullComplexOrFilter(t *testing.T) {
 	var manager = RuntimeIncidentManager{make(map[int64]*Incident, 0), make(map[int][]Attachment, 0)}
 	var incident1 = Incident{"Incident", 0, "Some Description", "Sally", "Open", make(map[string]string, 0)}
@@ -363,6 +428,71 @@ func TestGetIncidentsWithFullComplexOrFilter(t *testing.T) {
 			},
 		},
 		Junction: "or",
+	}
+
+	retVal, pass := manager.GetIncidents(&filter)
+
+	if !pass {
+		t.Error(
+			"For", pass,
+			"expected", true,
+			"got", pass)
+	}
+
+	if len(retVal) != 2 {
+		t.Error(
+			"For", retVal,
+			"expected", 2,
+			"got", len(retVal))
+	}
+}
+
+func TestGetIncidentsWithNestedComplexOrFilter(t *testing.T) {
+	var manager = RuntimeIncidentManager{make(map[int64]*Incident, 0), make(map[int][]Attachment, 0)}
+	var incident1 = Incident{"Incident", 0, "Some Description", "Sally", "Open", make(map[string]string, 0)}
+	var incident2 = Incident{"Incident", 2, "Description", "Jake", "Closed", make(map[string]string, 0)}
+	manager.AddIncident(&incident1)
+	manager.AddIncident(&incident2)
+
+	filter := FilterRequest{
+		Filters: []ComplexFilter{
+			{
+				Children: []*ComplexFilter{
+					{
+						Filter: []Filter{
+							{
+								Property:       "state",
+								ComparisonType: "equals",
+								Value:          "Open",
+							},
+							{
+								Property:       "reporter",
+								ComparisonType: "equals",
+								Value:          "Sally",
+							},
+						},
+						Junction: "and",
+					},
+					{
+						Filter: []Filter{
+							{
+								Property:       "state",
+								ComparisonType: "equals",
+								Value:          "Closed",
+							},
+							{
+								Property:       "reporter",
+								ComparisonType: "equals",
+								Value:          "Jake",
+							},
+						},
+						Junction: "and",
+					},
+				},
+				Junction: "or",
+			},
+		},
+		Junction: "and",
 	}
 
 	retVal, pass := manager.GetIncidents(&filter)

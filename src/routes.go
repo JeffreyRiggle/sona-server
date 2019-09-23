@@ -86,7 +86,7 @@ var routes = Routes{
 	Route{
 		"GetUser",
 		"GET",
-		"/sona/v1/users{userId}",
+		"/sona/v1/users/{userId}",
 		HandleGetUser,
 	},
 	Route{

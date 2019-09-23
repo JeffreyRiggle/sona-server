@@ -77,4 +77,34 @@ var routes = Routes{
 		"/sona/v1/{incidentId}",
 		HandleGetIncident,
 	},
+	Route{
+		"CreateUser",
+		"POST",
+		"/sona/v1/users",
+		HandleCreateUser,
+	},
+	Route{
+		"GetUser",
+		"GET",
+		"/sona/v1/users{userId}",
+		HandleGetUser,
+	},
+	Route{
+		"UpdateUser",
+		"PUT",
+		"/sona/v1/users/{userId}",
+		HandleUpdateUser,
+	},
+	Route{
+		"DeleteUser",
+		"DELETE",
+		"/sona/v1/users/{userId}",
+		HandleDeleteUser,
+	},
+	Route{
+		"Authenticate",
+		"POST",
+		"/sona/v1/authenticate",
+		HandleAuthentication,
+	},
 }

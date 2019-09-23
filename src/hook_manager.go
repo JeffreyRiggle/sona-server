@@ -14,9 +14,10 @@ import (
 // The UpdatedWebHooks are the endpoints to call in CallUpdatedHooks.
 // The AttachedWebHooks are the endpoints to call in CallAttachedWebHooks.
 type HookManager struct {
-	AddedWebHooks    []WebHook
-	UpdatedWebHooks  []WebHook
-	AttachedWebHooks []WebHook
+	AddedWebHooks     []WebHook
+	UpdatedWebHooks   []WebHook
+	AttachedWebHooks  []WebHook
+	UserAddedWebHooks []WebHook
 }
 
 // CallAddedHooks will call all defined added endpoints.
@@ -26,6 +27,16 @@ func (manager HookManager) CallAddedHooks(incident Incident) {
 	for _, hook := range manager.AddedWebHooks {
 		go fireHook(hook, preformAddedSubsitutions(hook, incident))
 	}
+}
+
+// CallAddedUserHooks will call all defined added endpoints.
+// During this process it will subsitute any nessicary data.
+func (manager HookManager) CallAddedUserHooks(user User) {
+	logManager.LogPrintln("Calling added user hooks")
+	// TODO
+	// for _, hook := range manager.UserAddedWebHooks {
+		// go fireHook(hook, preformAddedSubsitutions(hook, user))
+	// }
 }
 
 // CallUpdatedHooks will call all defined updated endpoints.

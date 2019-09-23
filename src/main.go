@@ -63,11 +63,13 @@ func loadConfig(file string) {
 	setupLogManager(config)
 	setupFileManager(config)
 	setupIncidentManager(config)
+	setupUsermanager(config)
 
 	hookManager = HookManager{
 		config.Hooks.AddedHooks,
 		config.Hooks.UpdatedHooks,
 		config.Hooks.AttachedHooks,
+		config.Hooks.AddedUserHooks,
 	}
 }
 
@@ -187,4 +189,8 @@ func setupDataStoreIncidentManager(config Config) {
 		0,
 	}
 	incidentManager = &dataStoreManager
+}
+
+func setupUsermanager(config Config) {
+	userManager = RuntimeUserManager{make(map[int]*User), make(map[int]string)}
 }

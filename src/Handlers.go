@@ -13,6 +13,7 @@ import (
 var fileManager FileManager
 var incidentManager IncidentManager
 var hookManager HookManager
+var userManager UserManager
 
 // HandleCreateIncident handles the create incident web request.
 func HandleCreateIncident(w http.ResponseWriter, r *http.Request) {
@@ -371,3 +372,155 @@ func convertFilter(r *http.Request) (*FilterRequest, bool) {
 
 	return filter, true
 }
+
+func HandleCreateUser(w http.ResponseWriter, r *http.Request) {
+	logManager.LogPrintln("Got Create User request")
+	w.Header().Set("Access-Control-Allow-Origin", "*")
+
+	user, pass := convertAddUser(r.Body)
+	if !pass {
+		logManager.LogPrintf("Bad request for create user %v", user)
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+
+	passed := userManager.AddUser(&user)
+	if !passed {
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	logManager.LogPrintf("Created user %v\n", user.Id)
+	go hookManager.CallAddedUserHooks(user)
+
+	data, err := json.Marshal(user)
+	if err != nil {
+		panic(err)
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusCreated)
+	w.Write(data)
+}
+
+func convertAddUser(body io.ReadCloser) (User, bool) {
+	decoder := json.NewDecoder(body)
+
+	var user User
+	err := decoder.Decode(&user)
+
+	if err != nil {
+		logManager.LogPrintf("Got error when attempting to decode body %v", err)
+		return user, false
+	}
+
+	if len(user.EmailAddress) == 0 || len(user.UserName) == 0 {
+		return user, false
+	}
+
+	return user, true
+}
+
+func HandleUpdateUser(w http.ResponseWriter, r *http.Request) {
+	logManager.LogPrint("Got User Update")
+	w.Header().Set("Access-Control-Allow-Origin", "*")
+	w.Header().Set("Content-Type", "application/json")
+
+	vars := mux.Vars(r)
+
+	userId, err := strconv.Atoi(vars["userId"])
+
+	if err != nil {
+		logManager.LogPrintf("Error converting userId %v", err)
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+
+	update, passed := convertUpdateUser(r.Body)
+
+	if !passed {
+		logManager.LogPrintf("Invalid update for %v\n", userId)
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+
+	if userManager.UpdateUser(userId, &update) {
+		// go hookManager.CallUpdatedHooks(incidentId, update)
+		w.WriteHeader(http.StatusOK)
+		return
+	}
+
+	logManager.LogPrintf("User %v not found\n", userId)
+	w.WriteHeader(http.StatusNotFound)
+}
+
+func convertUpdateUser(body io.ReadCloser) (User, bool) {
+	decoder := json.NewDecoder(body)
+
+	var update User
+	err := decoder.Decode(&update)
+
+	if err != nil {
+		return update, false
+	}
+
+	return update, true
+}
+
+func HandleGetUser(w http.ResponseWriter, r *http.Request) {
+	logManager.LogPrintln("Got user state request")
+	w.Header().Set("Access-Control-Allow-Origin", "*")
+
+	vars := mux.Vars(r)
+
+	userId, err := strconv.Atoi(vars["userId"])
+	if err != nil {
+		logManager.LogPrintf("Error converting userId %v", err)
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+
+	if val, ok := userManager.GetUser(userId); ok {
+		logManager.LogPrintf("Got State request for %v.", userId)
+		w.Header().Set("Content-Type", "application/json;charset=UTF-8")
+		w.WriteHeader(http.StatusOK)
+
+		if err := json.NewEncoder(w).Encode(val); err != nil {
+			panic(err)
+		}
+
+		return
+	}
+
+	logManager.LogPrintf("User %v not found\n", userId)
+	w.WriteHeader(http.StatusNotFound)
+}
+
+func HandleDeleteUser(w http.ResponseWriter, r *http.Request) {
+	logManager.LogPrintln("Got user delete request")
+	w.Header().Set("Access-Control-Allow-Origin", "*")
+
+	vars := mux.Vars(r)
+
+	userId, err := strconv.Atoi(vars["userId"])
+
+	if err != nil {
+		logManager.LogPrintf("Error converting userId %v", err)
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+
+	if userManager.RemoveUser(userId) {
+		w.WriteHeader(http.StatusOK)
+		return
+	}
+
+	w.WriteHeader(http.StatusInternalServerError)
+}
+
+func HandleAuthentication(w http.ResponseWriter, r *http.Request) {
+}
+
+// TODO finish handlers delete, get, authorize
+// TODO consider refactoring Handlers.go into multiple files.
+// TODO web hooks for update and delete user?

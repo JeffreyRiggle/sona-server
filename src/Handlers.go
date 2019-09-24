@@ -519,6 +519,40 @@ func HandleDeleteUser(w http.ResponseWriter, r *http.Request) {
 }
 
 func HandleChangePassword(w http.ResponseWriter, r *http.Request) {
+	logManager.LogPrintln("Got user delete request")
+	w.Header().Set("Access-Control-Allow-Origin", "*")
+
+	vars := mux.Vars(r)
+
+	userId, err := strconv.Atoi(vars["userId"])
+
+	if err != nil {
+		logManager.LogPrintf("Error converting userId %v", err)
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+
+	decoder := json.NewDecoder(r.Body)
+
+	var req PasswordChangeRequest
+	err2 := decoder.Decode(&req)
+
+	if err2 != nil {
+		logManager.LogPrint("Invalid password change request")
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+
+	auth := userManager.AuthenticateUser(userId, req.OldPassword)
+
+	if !auth {
+		logManager.LogPrintf("Failed to authenticate %v", userId)
+		w.WriteHeader(http.StatusForbidden)
+		return
+	}
+
+	userManager.SetUserPassword(userId, req.NewPassword)
+	w.WriteHeader(http.StatusOK)
 }
 
 func HandleAuthentication(w http.ResponseWriter, r *http.Request) {

@@ -23,6 +23,11 @@ type UserPassword struct {
 	Password string `json:"password"`
 }
 
+type PasswordChangeRequest struct {
+	OldPassword string `json:"oldPassword"`
+	NewPassword string `json:"newPassword"`
+}
+
 func (user User) setPassword(password string) {
 	userManager.SetUserPassword(user.Id, password)
 }

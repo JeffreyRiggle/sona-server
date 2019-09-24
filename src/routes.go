@@ -102,6 +102,12 @@ var routes = Routes{
 		HandleDeleteUser,
 	},
 	Route{
+		"Authentication",
+		"PUT",
+		"/sona/v1/users/{userId}",
+		HandleChangePassword,
+	},
+	Route{
 		"Authenticate",
 		"POST",
 		"/sona/v1/authenticate",

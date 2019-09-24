@@ -6,12 +6,32 @@ type RuntimeUserManager struct {
 }
 
 
-func (manager RuntimeUserManager) AddUser(user *User) bool {
-	var id = len(manager.Users)
-	user.Id = id
-	manager.Users[id] = user
+func (manager RuntimeUserManager) AddUser(user *AddUser) (bool, User) {
+	var cuser, id = manager.convertAddUser(user)
+	manager.Users[id] = cuser
 
-	return true
+	manager.SetUserPassword(id, user.Password)
+	return true, *cuser
+}
+
+func (manager RuntimeUserManager) convertAddUser(user *AddUser) (*User, int) {
+	var retVal User;
+	var id = len(manager.Users)
+
+	retVal.Id = id
+	retVal.EmailAddress = user.EmailAddress
+	retVal.UserName = user.UserName
+	retVal.FirstName = user.FirstName
+	
+	if len(user.LastName) != 0 {
+		retVal.LastName = user.LastName
+	}
+
+	if len(user.Gender) != 0 {
+		retVal.Gender = user.Gender
+	}
+
+	return &retVal, id
 }
 
 func (manager RuntimeUserManager) GetUser(userId int) (User, bool) {

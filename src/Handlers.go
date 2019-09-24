@@ -377,14 +377,14 @@ func HandleCreateUser(w http.ResponseWriter, r *http.Request) {
 	logManager.LogPrintln("Got Create User request")
 	w.Header().Set("Access-Control-Allow-Origin", "*")
 
-	user, pass := convertAddUser(r.Body)
+	addUser, pass := convertAddUser(r.Body)
 	if !pass {
-		logManager.LogPrintf("Bad request for create user %v", user)
+		logManager.LogPrintf("Bad request for create user %v", addUser)
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
 
-	passed := userManager.AddUser(&user)
+	passed, user := userManager.AddUser(&addUser)
 	if !passed {
 		w.WriteHeader(http.StatusInternalServerError)
 		return
@@ -403,10 +403,10 @@ func HandleCreateUser(w http.ResponseWriter, r *http.Request) {
 	w.Write(data)
 }
 
-func convertAddUser(body io.ReadCloser) (User, bool) {
+func convertAddUser(body io.ReadCloser) (AddUser, bool) {
 	decoder := json.NewDecoder(body)
 
-	var user User
+	var user AddUser
 	err := decoder.Decode(&user)
 
 	if err != nil {
@@ -414,7 +414,7 @@ func convertAddUser(body io.ReadCloser) (User, bool) {
 		return user, false
 	}
 
-	if len(user.EmailAddress) == 0 || len(user.UserName) == 0 {
+	if len(user.EmailAddress) == 0 || len(user.UserName) == 0  || len(user.Password) == 0 {
 		return user, false
 	}
 
@@ -518,7 +518,35 @@ func HandleDeleteUser(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusInternalServerError)
 }
 
+func HandleChangePassword(w http.ResponseWriter, r *http.Request) {
+}
+
 func HandleAuthentication(w http.ResponseWriter, r *http.Request) {
+	logManager.LogPrint("Got User Authentication")
+	w.Header().Set("Access-Control-Allow-Origin", "*")
+	w.Header().Set("Content-Type", "application/json")
+
+	decoder := json.NewDecoder(r.Body)
+
+	var req UserPassword
+	err := decoder.Decode(&req)
+
+	if err != nil {
+		logManager.LogPrint("Invalid password request")
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+
+	auth := userManager.AuthenticateUser(req.Id, req.Password)
+
+	if !auth {
+		logManager.LogPrintf("Failed to authenticate %v", req.Id)
+		w.WriteHeader(http.StatusForbidden)
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+	w.Write([]byte("sometokenhere"))
 }
 
 // TODO finish handlers delete, get, authorize

@@ -104,7 +104,7 @@ var routes = Routes{
 	Route{
 		"Authentication",
 		"PUT",
-		"/sona/v1/users/{userId}",
+		"/sona/v1/users/{userId}/authentication",
 		HandleChangePassword,
 	},
 	Route{

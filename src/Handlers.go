@@ -519,7 +519,7 @@ func HandleDeleteUser(w http.ResponseWriter, r *http.Request) {
 }
 
 func HandleChangePassword(w http.ResponseWriter, r *http.Request) {
-	logManager.LogPrintln("Got user delete request")
+	logManager.LogPrintln("Got user password change request.")
 	w.Header().Set("Access-Control-Allow-Origin", "*")
 
 	vars := mux.Vars(r)
@@ -543,7 +543,15 @@ func HandleChangePassword(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	auth := userManager.AuthenticateUser(userId, req.OldPassword)
+	user, found := userManager.GetUser(userId)
+
+	if !found {
+		logManager.LogPrintf("Error finding userId %v", err)
+		w.WriteHeader(http.StatusNotFound)
+		return
+	}
+
+	auth := user.Authenticate(req.OldPassword)
 
 	if !auth {
 		logManager.LogPrintf("Failed to authenticate %v", userId)
@@ -551,7 +559,7 @@ func HandleChangePassword(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	userManager.SetUserPassword(userId, req.NewPassword)
+	user.SetPassword(req.NewPassword)
 	w.WriteHeader(http.StatusOK)
 }
 
@@ -571,7 +579,15 @@ func HandleAuthentication(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	auth := userManager.AuthenticateUser(req.Id, req.Password)
+	user, found := userManager.GetUser(req.Id)
+
+	if !found {
+		logManager.LogPrintf("Unable to find user %v", req.Id)
+		w.WriteHeader(http.StatusNotFound)
+		return
+	}
+
+	auth := user.Authenticate(req.Password)
 
 	if !auth {
 		logManager.LogPrintf("Failed to authenticate %v", req.Id)

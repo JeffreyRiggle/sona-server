@@ -28,10 +28,10 @@ type PasswordChangeRequest struct {
 	NewPassword string `json:"newPassword"`
 }
 
-func (user User) setPassword(password string) {
-	userManager.SetUserPassword(user.Id, password)
+func (user User) SetPassword(password string) {
+	userManager.SetUserPassword(user, password)
 }
 
-func (user User) authenticate(password string) bool {
-	return userManager.AuthenticateUser(user.Id, password)
+func (user User) Authenticate(password string) bool {
+	return userManager.AuthenticateUser(user, password)
 }

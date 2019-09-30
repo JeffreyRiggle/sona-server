@@ -1,5 +1,11 @@
 package main
 
+import (
+	"io"
+	"strings"
+	"crypto/sha256"
+)
+
 type RuntimeUserManager struct {
 	Users map[int]*User
 	Passwords map[int]string
@@ -10,7 +16,7 @@ func (manager RuntimeUserManager) AddUser(user *AddUser) (bool, User) {
 	var cuser, id = manager.convertAddUser(user)
 	manager.Users[id] = cuser
 
-	manager.SetUserPassword(id, user.Password)
+	manager.SetUserPassword(*cuser, user.Password)
 	return true, *cuser
 }
 
@@ -53,10 +59,22 @@ func (manager RuntimeUserManager) RemoveUser(userId int) bool {
 }
 
 
-func (manager RuntimeUserManager) SetUserPassword(userId int, password string) {
-	manager.Passwords[userId] = password
+func (manager RuntimeUserManager) SetUserPassword(user User, password string) {
+	manager.Passwords[user.Id] = createPasswordHash(user, password)
 }
 
-func (manager RuntimeUserManager) AuthenticateUser(userId int, password string) bool {
-	return password == manager.Passwords[userId]
+func (manager RuntimeUserManager) AuthenticateUser(user User, password string) bool {
+	return createPasswordHash(user, password) == manager.Passwords[user.Id]
+}
+
+func createPasswordHash(user User, password string) string {
+	hash := sha256.New()
+
+	pw := strings.NewReader(password + user.EmailAddress)
+
+	if _, err := io.Copy(hash, pw); err != nil {
+		return "gol"
+	}
+
+	return string(hash.Sum(nil))
 }

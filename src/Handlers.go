@@ -595,8 +595,13 @@ func HandleAuthentication(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	w.Header().Set("Content-Type", "application/json;charset=UTF-8")
 	w.WriteHeader(http.StatusOK)
-	w.Write([]byte("sometokenhere"))
+
+	token := GenerateToken(user)
+	if err := json.NewEncoder(w).Encode(token); err != nil {
+		panic(err)
+	}
 }
 
 // TODO finish handlers delete, get, authorize

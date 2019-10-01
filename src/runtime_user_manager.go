@@ -73,7 +73,7 @@ func createPasswordHash(user User, password string) string {
 	pw := strings.NewReader(password + user.EmailAddress)
 
 	if _, err := io.Copy(hash, pw); err != nil {
-		return "gol"
+		return ""
 	}
 
 	return string(hash.Sum(nil))

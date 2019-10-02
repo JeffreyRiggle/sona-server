@@ -9,6 +9,7 @@ import (
 type RuntimeUserManager struct {
 	Users map[int]*User
 	Passwords map[int]string
+	Tokens map[int][]string
 }
 
 
@@ -63,8 +64,21 @@ func (manager RuntimeUserManager) SetUserPassword(user User, password string) {
 	manager.Passwords[user.Id] = createPasswordHash(user, password)
 }
 
-func (manager RuntimeUserManager) AuthenticateUser(user User, password string) bool {
-	return createPasswordHash(user, password) == manager.Passwords[user.Id]
+func (manager RuntimeUserManager) AuthenticateUser(user User, password string) (bool, TokenResponse) {
+	auth := createPasswordHash(user, password) == manager.Passwords[user.Id]
+
+	if !auth {
+		return auth, TokenResponse {""}
+	}
+
+	token := GenerateToken(user)
+
+	if manager.Tokens[user.Id] == nil {
+		manager.Tokens[user.Id] = make([]string, 0, 0)
+	}
+
+	manager.Tokens[user.Id] = append(manager.Tokens[user.Id], token.Token)
+	return auth, token
 }
 
 func createPasswordHash(user User, password string) string {

@@ -32,6 +32,6 @@ func (user User) SetPassword(password string) {
 	userManager.SetUserPassword(user, password)
 }
 
-func (user User) Authenticate(password string) bool {
+func (user User) Authenticate(password string) (bool, TokenResponse) {
 	return userManager.AuthenticateUser(user, password)
 }

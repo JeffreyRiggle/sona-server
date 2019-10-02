@@ -551,7 +551,7 @@ func HandleChangePassword(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	auth := user.Authenticate(req.OldPassword)
+	auth, _ := user.Authenticate(req.OldPassword)
 
 	if !auth {
 		logManager.LogPrintf("Failed to authenticate %v", userId)
@@ -587,7 +587,7 @@ func HandleAuthentication(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	auth := user.Authenticate(req.Password)
+	auth, token := user.Authenticate(req.Password)
 
 	if !auth {
 		logManager.LogPrintf("Failed to authenticate %v", req.Id)
@@ -598,7 +598,6 @@ func HandleAuthentication(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json;charset=UTF-8")
 	w.WriteHeader(http.StatusOK)
 
-	token := GenerateToken(user)
 	if err := json.NewEncoder(w).Encode(token); err != nil {
 		panic(err)
 	}

@@ -7,4 +7,5 @@ type UserManager interface {
 	RemoveUser(userId int) bool
 	SetUserPassword(user User, password string)
 	AuthenticateUser(user User, password string) (bool, TokenResponse)
+	ValidateUser(token string) bool
 }

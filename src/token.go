@@ -23,6 +23,19 @@ func GenerateToken(user User) TokenResponse {
 	return TokenResponse{b64.StdEncoding.EncodeToString([]byte(val))}
 }
 
+func GetTokenUser(token string) int {
+	decoded, _ := b64.StdEncoding.DecodeString(token)
+	vals := strings.Split(string(decoded), ":")
+
+	if len(vals) < 3 {
+		return -1
+	}
+
+	retVal, _ := strconv.Atoi(vals[0])
+
+	return retVal
+}
+
 func TokenExpired(token string) bool {
 	decoded, _ := b64.StdEncoding.DecodeString(token)
 	vals := strings.Split(string(decoded), ":")

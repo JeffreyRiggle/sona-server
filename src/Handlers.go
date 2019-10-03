@@ -55,6 +55,13 @@ func HandleIncidentUpdate(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Access-Control-Allow-Origin", "*")
 	w.Header().Set("Content-Type", "application/json")
 
+	token := r.Header.Get("X-Sona-Token")
+	if !userManager.ValidateUser(token) {
+		logManager.LogPrintf("Invalid Token %v used", token)
+		w.WriteHeader(http.StatusForbidden)
+		return
+	}
+
 	vars := mux.Vars(r)
 
 	incidentId, err := strconv.Atoi(vars["incidentId"])

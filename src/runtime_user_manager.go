@@ -81,6 +81,32 @@ func (manager RuntimeUserManager) AuthenticateUser(user User, password string) (
 	return auth, token
 }
 
+func (manager RuntimeUserManager) ValidateUser(token string) bool {
+	userId := GetTokenUser(token)
+
+	found := -1
+	
+	for i, v := range manager.Tokens[userId] {
+		if v == token {
+			found = i
+		}
+	}
+
+	if found == -1 {
+		logManager.LogPrintf("Token not found for user %v", userId)
+		return false
+	}
+
+	expired := TokenExpired(token)
+	logManager.LogPrintf("Token expired %v", expired)
+
+	if expired {
+		manager.Tokens[userId] = append(manager.Tokens[userId][:found], manager.Tokens[userId][found+1:]...)
+	}
+
+	return !expired
+}
+
 func createPasswordHash(user User, password string) string {
 	hash := sha256.New()
 

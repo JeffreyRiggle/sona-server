@@ -47,8 +47,9 @@ func TokenExpired(token string) bool {
 	timestamp, err := strconv.ParseInt(vals[2], 10, 64)
 
 	if err != nil {
+		logManager.LogFatal(err)
 		return false
 	}
 
-	return timestamp > time.Now().UnixNano()
+	return timestamp < time.Now().UnixNano()
 }

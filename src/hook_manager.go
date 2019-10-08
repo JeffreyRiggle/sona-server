@@ -33,10 +33,9 @@ func (manager HookManager) CallAddedHooks(incident Incident) {
 // During this process it will subsitute any nessicary data.
 func (manager HookManager) CallAddedUserHooks(user User) {
 	logManager.LogPrintln("Calling added user hooks")
-	// TODO
-	// for _, hook := range manager.UserAddedWebHooks {
-		// go fireHook(hook, preformAddedSubsitutions(hook, user))
-	// }
+	for _, hook := range manager.UserAddedWebHooks {
+		go fireHook(hook, preformUserSubsitutions(hook, user))
+	}
 }
 
 // CallUpdatedHooks will call all defined updated endpoints.
@@ -73,6 +72,22 @@ func preformAddedSubsitutions(hook WebHook, incident Incident) *bytes.Buffer {
 	return b
 }
 
+func preformUserSubsitutions(hook WebHook, user User) *bytes.Buffer {
+	var bod = make(map[string]string, 0)
+
+	for _, item := range hook.Body.Items {
+		if item.Substitute {
+			bod[item.Key] = preformUserSubstitutionImpl(item.Value, user)
+		} else {
+			bod[item.Key] = item.Value
+		}
+	}
+
+	b := new(bytes.Buffer)
+	json.NewEncoder(b).Encode(bod)
+	return b
+}
+
 func preformAddSubstitutionImpl(key string, incident Incident) string {
 	var cRegEx = regexp.MustCompile("\\{\\{([^\\}\\}]*)\\}\\}")
 	match := cRegEx.FindAllStringSubmatch(key, -1)
@@ -85,6 +100,23 @@ func preformAddSubstitutionImpl(key string, incident Incident) string {
 	for i := 0; i < len(match); i++ {
 		var replaceRegEx = regexp.MustCompile(match[i][0])
 		retVal = replaceRegEx.ReplaceAllString(retVal, getIncidentPropertyValue(match[i][1], incident))
+	}
+
+	return retVal
+}
+
+func preformUserSubstitutionImpl(key string, user User) string {
+	var cRegEx = regexp.MustCompile("\\{\\{([^\\}\\}]*)\\}\\}")
+	match := cRegEx.FindAllStringSubmatch(key, -1)
+
+	if len(match) <= 0 {
+		return getUserPropertyValue(key, user)
+	}
+
+	var retVal = key
+	for i := 0; i < len(match); i++ {
+		var replaceRegEx = regexp.MustCompile(match[i][0])
+		retVal = replaceRegEx.ReplaceAllString(retVal, getUserPropertyValue(match[i][1], user))
 	}
 
 	return retVal

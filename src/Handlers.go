@@ -421,5 +421,4 @@ func convertFilter(r *http.Request) (*FilterRequest, bool) {
 	return filter, true
 }
 
-// TODO consider refactoring Handlers.go into multiple files.
 // TODO web hooks for update and delete user?

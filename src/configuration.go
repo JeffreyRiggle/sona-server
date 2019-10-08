@@ -54,10 +54,11 @@ type WebBodyItem struct {
 // The UpdatedHooks are web hooks to call when an incident has been updated.
 // The AttachedHooks are web hooks to call when an attachment has been added to an incident.
 type WebHooks struct {
-	AddedHooks     []WebHook `json:"addedhooks"`
-	UpdatedHooks   []WebHook `json:"updatedhooks"`
-	AttachedHooks  []WebHook `json:"attachedhooks"`
-	AddedUserHooks []WebHook `json:"addedUserHooks"`
+	AddedHooks       []WebHook `json:"addedhooks"`
+	UpdatedHooks     []WebHook `json:"updatedhooks"`
+	AttachedHooks    []WebHook `json:"attachedhooks"`
+	AddedUserHooks   []WebHook `json:"addedUserHooks"`
+	UpdatedUserHooks []WebHook `json:"addedUserHooks"`
 }
 
 // DynamoDBConfig is the configuration to use if the dynamodb mananger is in use.

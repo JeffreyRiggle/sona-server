@@ -70,6 +70,7 @@ func loadConfig(file string) {
 		config.Hooks.UpdatedHooks,
 		config.Hooks.AttachedHooks,
 		config.Hooks.AddedUserHooks,
+		config.Hooks.UpdatedUserHooks,
 	}
 }
 

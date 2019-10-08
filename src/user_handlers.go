@@ -90,7 +90,7 @@ func HandleUpdateUser(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if userManager.UpdateUser(userId, &update) {
-		// go hookManager.CallUpdatedHooks(incidentId, update)
+		go hookManager.CallUpdatedUserHooks(update)
 		w.WriteHeader(http.StatusOK)
 		return
 	}

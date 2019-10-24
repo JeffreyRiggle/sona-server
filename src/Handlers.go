@@ -420,5 +420,3 @@ func convertFilter(r *http.Request) (*FilterRequest, bool) {
 
 	return filter, true
 }
-
-// TODO web hooks for update and delete user?

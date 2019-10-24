@@ -53,6 +53,7 @@ type WebBodyItem struct {
 // The AddedHooks are web hooks to call when an incident has been created.
 // The UpdatedHooks are web hooks to call when an incident has been updated.
 // The AttachedHooks are web hooks to call when an attachment has been added to an incident.
+// The UpdatedUserHooks are web hooks to call when a user is updated.
 type WebHooks struct {
 	AddedHooks       []WebHook `json:"addedhooks"`
 	UpdatedHooks     []WebHook `json:"updatedhooks"`
@@ -109,7 +110,7 @@ type MySQLConfig struct {
 
 // DataStoreConfig controls the configuration of a google cloud datastore if it is in use.
 // The ProjectName controls what google cloud project will be used.
-// The AuthFile controls what json file to use for authentication.  
+// The AuthFile controls what json file to use for authentication.
 type DataStoreConfig struct {
 	ProjectName string `json:"projectname"`
 	AuthFile    string `json:"authfile"`

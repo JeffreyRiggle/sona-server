@@ -59,7 +59,7 @@ type WebHooks struct {
 	UpdatedHooks     []WebHook `json:"updatedhooks"`
 	AttachedHooks    []WebHook `json:"attachedhooks"`
 	AddedUserHooks   []WebHook `json:"addedUserHooks"`
-	UpdatedUserHooks []WebHook `json:"addedUserHooks"`
+	UpdatedUserHooks []WebHook `json:"updatedUserHooks"`
 }
 
 // DynamoDBConfig is the configuration to use if the dynamodb mananger is in use.

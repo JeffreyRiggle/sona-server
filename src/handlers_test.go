@@ -15,6 +15,7 @@ import (
 )
 
 var router *mux.Router
+var user1 User
 
 // FakeFileManager a manager to fake file io
 type FakeFileManager struct {
@@ -39,8 +40,19 @@ func setup() {
 	}
 
 	incidentManager = RuntimeIncidentManager{make(map[int64]*Incident), make(map[int][]Attachment)}
-	hookManager = HookManager{make([]WebHook, 0), make([]WebHook, 0), make([]WebHook, 0)}
+	userManager = RuntimeUserManager{make(map[int]*User), make(map[int]string), make(map[int][]string)}
+	hookManager = HookManager{make([]WebHook, 0), make([]WebHook, 0), make([]WebHook, 0), make([]WebHook, 0), make([]WebHook, 0)}
 	fileManager = FakeFileManager{}
+
+	addUser1 := AddUser{
+		EmailAddress: "a@b.c",
+		FirstName:    "Foo",
+		LastName:     "User",
+		UserName:     "FooUser",
+		Password:     "1234",
+	}
+
+	_, user1 = userManager.AddUser(&addUser1)
 }
 
 func TestCreateIncident(t *testing.T) {
@@ -97,7 +109,29 @@ func TestCreateIncidentWithInvalidRequest(t *testing.T) {
 	}
 }
 
-func TestIncidentUpdate(t *testing.T) {
+func TestIncidentUpdateWithValidToken(t *testing.T) {
+	setup()
+	incidentManager.AddIncident(&Incident{"Incident", 0, "Test", "Tester", "open", make(map[string]string, 0)})
+
+	m := make(map[string]string, 1)
+	m["Test"] = "Value"
+
+	update := IncidentUpdate{"New State", "", "", m}
+	_, token := user1.Authenticate("1234")
+	body, _ := json.Marshal(update)
+
+	r, _ := http.NewRequest("PUT", "/sona/v1/0/update", bytes.NewBuffer(body))
+	r.Header.Set("X-Sona-Token", token.Token)
+	w := httptest.NewRecorder()
+
+	router.ServeHTTP(w, r)
+
+	if w.Result().StatusCode != 200 {
+		t.Errorf("Expected 200 status code got %v", w.Result())
+	}
+}
+
+func TestIncidentUpdateWithInvalidValidToken(t *testing.T) {
 	setup()
 	incidentManager.AddIncident(&Incident{"Incident", 0, "Test", "Tester", "open", make(map[string]string, 0)})
 
@@ -108,20 +142,23 @@ func TestIncidentUpdate(t *testing.T) {
 	body, _ := json.Marshal(update)
 
 	r, _ := http.NewRequest("PUT", "/sona/v1/0/update", bytes.NewBuffer(body))
+	r.Header.Set("X-Sona-Token", "badValue")
 	w := httptest.NewRecorder()
 
 	router.ServeHTTP(w, r)
 
-	if w.Result().StatusCode != 200 {
-		t.Errorf("Expected 200 status code got %v", w.Result())
+	if w.Result().StatusCode != 403 {
+		t.Errorf("Expected 403 status code got %v", w.Result())
 	}
 }
 
 func TestIncidentUpdateWithInvalidId(t *testing.T) {
 	setup()
 	body, _ := json.Marshal(IncidentUpdate{})
+	_, token := user1.Authenticate("1234")
 
 	r, _ := http.NewRequest("PUT", "/sona/v1/badvalue/update", bytes.NewBuffer(body))
+	r.Header.Set("X-Sona-Token", token.Token)
 	w := httptest.NewRecorder()
 
 	router.ServeHTTP(w, r)
@@ -134,8 +171,10 @@ func TestIncidentUpdateWithInvalidId(t *testing.T) {
 func TestIncidentUpdateWithNonExistantId(t *testing.T) {
 	setup()
 	body, _ := json.Marshal(IncidentUpdate{})
+	_, token := user1.Authenticate("1234")
 
 	r, _ := http.NewRequest("PUT", "/sona/v1/3/update", bytes.NewBuffer(body))
+	r.Header.Set("X-Sona-Token", token.Token)
 	w := httptest.NewRecorder()
 
 	router.ServeHTTP(w, r)
@@ -148,8 +187,10 @@ func TestIncidentUpdateWithNonExistantId(t *testing.T) {
 func TestGetIncidentHandler(t *testing.T) {
 	setup()
 	incidentManager.AddIncident(&Incident{"Incident", 0, "Test", "Tester", "open", make(map[string]string, 0)})
+	_, token := user1.Authenticate("1234")
 
 	r, _ := http.NewRequest("GET", "/sona/v1/0", nil)
+	r.Header.Set("X-Sona-Token", token.Token)
 	w := httptest.NewRecorder()
 
 	router.ServeHTTP(w, r)
@@ -181,11 +222,28 @@ func TestGetIncidentHandler(t *testing.T) {
 	}
 }
 
-func TestGetIncidentHandlerWithInvalidId(t *testing.T) {
+func TestGetIncidentHandlerWithInvalidToken(t *testing.T) {
 	setup()
 	incidentManager.AddIncident(&Incident{"Incident", 0, "Test", "Tester", "open", make(map[string]string, 0)})
 
+	r, _ := http.NewRequest("GET", "/sona/v1/0", nil)
+	r.Header.Set("X-Sona-Token", "badToken")
+	w := httptest.NewRecorder()
+
+	router.ServeHTTP(w, r)
+
+	if w.Result().StatusCode != 403 {
+		t.Errorf("Expected 403 status code got %v", w.Result())
+	}
+}
+
+func TestGetIncidentHandlerWithInvalidId(t *testing.T) {
+	setup()
+	incidentManager.AddIncident(&Incident{"Incident", 0, "Test", "Tester", "open", make(map[string]string, 0)})
+	_, token := user1.Authenticate("1234")
+
 	r, _ := http.NewRequest("GET", "/sona/v1/zero", nil)
+	r.Header.Set("X-Sona-Token", token.Token)
 	w := httptest.NewRecorder()
 
 	router.ServeHTTP(w, r)
@@ -198,8 +256,10 @@ func TestGetIncidentHandlerWithInvalidId(t *testing.T) {
 func TestGetIncidentHandlerWithNonExistantId(t *testing.T) {
 	setup()
 	incidentManager.AddIncident(&Incident{"Incident", 0, "Test", "Tester", "open", make(map[string]string, 0)})
+	_, token := user1.Authenticate("1234")
 
 	r, _ := http.NewRequest("GET", "/sona/v1/1", nil)
+	r.Header.Set("X-Sona-Token", token.Token)
 	w := httptest.NewRecorder()
 
 	router.ServeHTTP(w, r)
@@ -213,8 +273,10 @@ func TestGetIncidentsHandler(t *testing.T) {
 	setup()
 	incidentManager.AddIncident(&Incident{"Incident", 0, "Test", "Tester", "open", make(map[string]string, 0)})
 	incidentManager.AddIncident(&Incident{"Incident", 1, "Something", "Someone", "Closed", make(map[string]string, 0)})
+	_, token := user1.Authenticate("1234")
 
 	r, _ := http.NewRequest("GET", "/sona/v1/incidents", nil)
+	r.Header.Set("X-Sona-Token", token.Token)
 	w := httptest.NewRecorder()
 
 	router.ServeHTTP(w, r)
@@ -266,11 +328,29 @@ func TestGetIncidentsHandler(t *testing.T) {
 	}
 }
 
+func TestGetIncidentsHandlerWithInvalidToken(t *testing.T) {
+	setup()
+	incidentManager.AddIncident(&Incident{"Incident", 0, "Test", "Tester", "open", make(map[string]string, 0)})
+	incidentManager.AddIncident(&Incident{"Incident", 1, "Something", "Someone", "Closed", make(map[string]string, 0)})
+
+	r, _ := http.NewRequest("GET", "/sona/v1/incidents", nil)
+	r.Header.Set("X-Sona-Token", "badToken")
+	w := httptest.NewRecorder()
+
+	router.ServeHTTP(w, r)
+
+	if w.Result().StatusCode != 403 {
+		t.Errorf("Expected 403 status code got %v", w.Result())
+	}
+}
+
 func TestGetAttachmentWithInvalidId(t *testing.T) {
 	setup()
 	incidentManager.AddIncident(&Incident{"Incident", 0, "Test", "Tester", "open", make(map[string]string, 0)})
+	_, token := user1.Authenticate("1234")
 
 	r, _ := http.NewRequest("GET", "/sona/v1/zero/attachments", nil)
+	r.Header.Set("X-Sona-Token", token.Token)
 	w := httptest.NewRecorder()
 
 	router.ServeHTTP(w, r)
@@ -283,8 +363,10 @@ func TestGetAttachmentWithInvalidId(t *testing.T) {
 func TestGetAttachmentsWithNoAttached(t *testing.T) {
 	setup()
 	incidentManager.AddIncident(&Incident{"Incident", 0, "Test", "Tester", "open", make(map[string]string, 0)})
+	_, token := user1.Authenticate("1234")
 
 	r, _ := http.NewRequest("GET", "/sona/v1/0/attachments", nil)
+	r.Header.Set("X-Sona-Token", token.Token)
 	w := httptest.NewRecorder()
 
 	router.ServeHTTP(w, r)
@@ -309,9 +391,11 @@ func TestGetAttachmentsWithAttached(t *testing.T) {
 	incidentManager.AddIncident(&Incident{"Incident", 0, "Test", "Tester", "open", make(map[string]string, 0)})
 	incidentManager.AddAttachment(0, Attachment{"testfile.png", "2009-11-10T23:00:00Z"})
 	incidentManager.AddAttachment(0, Attachment{"testfile2.jpg", "2009-10-10T23:00:00Z"})
+	_, token := user1.Authenticate("1234")
 
 	r, _ := http.NewRequest("GET", "/sona/v1/0/attachments", nil)
 	w := httptest.NewRecorder()
+	r.Header.Set("X-Sona-Token", token.Token)
 
 	router.ServeHTTP(w, r)
 
@@ -338,12 +422,31 @@ func TestGetAttachmentsWithAttached(t *testing.T) {
 	}
 }
 
+func TestGetAttachmentsWithAttachedAndInvalidToken(t *testing.T) {
+	setup()
+	incidentManager.AddIncident(&Incident{"Incident", 0, "Test", "Tester", "open", make(map[string]string, 0)})
+	incidentManager.AddAttachment(0, Attachment{"testfile.png", "2009-11-10T23:00:00Z"})
+	incidentManager.AddAttachment(0, Attachment{"testfile2.jpg", "2009-10-10T23:00:00Z"})
+
+	r, _ := http.NewRequest("GET", "/sona/v1/0/attachments", nil)
+	w := httptest.NewRecorder()
+	r.Header.Set("X-Sona-Token", "badToken")
+
+	router.ServeHTTP(w, r)
+
+	if w.Result().StatusCode != 403 {
+		t.Errorf("Expected 403 status code got %v", w.Result())
+	}
+}
+
 func TestUploadAttachmentWithInvalidId(t *testing.T) {
 	setup()
 	incidentManager.AddIncident(&Incident{"Incident", 0, "Test", "Tester", "open", make(map[string]string, 0)})
+	_, token := user1.Authenticate("1234")
 
 	r, _ := http.NewRequest("POST", "/sona/v1/zero/attachment", nil)
 	w := httptest.NewRecorder()
+	r.Header.Set("X-Sona-Token", token.Token)
 
 	router.ServeHTTP(w, r)
 
@@ -352,12 +455,29 @@ func TestUploadAttachmentWithInvalidId(t *testing.T) {
 	}
 }
 
-func TestUploadAttachmentWithNonExistantId(t *testing.T) {
+func TestUploadAttachmentWithInvalidToken(t *testing.T) {
 	setup()
 	incidentManager.AddIncident(&Incident{"Incident", 0, "Test", "Tester", "open", make(map[string]string, 0)})
 
+	r, _ := http.NewRequest("POST", "/sona/v1/0/attachment", nil)
+	w := httptest.NewRecorder()
+	r.Header.Set("X-Sona-Token", "badToken")
+
+	router.ServeHTTP(w, r)
+
+	if w.Result().StatusCode != 403 {
+		t.Errorf("Expected 403 status code got %v", w.Result())
+	}
+}
+
+func TestUploadAttachmentWithNonExistantId(t *testing.T) {
+	setup()
+	incidentManager.AddIncident(&Incident{"Incident", 0, "Test", "Tester", "open", make(map[string]string, 0)})
+	_, token := user1.Authenticate("1234")
+
 	r, _ := http.NewRequest("POST", "/sona/v1/3/attachment", nil)
 	w := httptest.NewRecorder()
+	r.Header.Set("X-Sona-Token", token.Token)
 
 	router.ServeHTTP(w, r)
 
@@ -369,9 +489,11 @@ func TestUploadAttachmentWithNonExistantId(t *testing.T) {
 func TestDeleteAttachmentWithInvalidId(t *testing.T) {
 	setup()
 	incidentManager.AddIncident(&Incident{"Incident", 0, "Test", "Tester", "open", make(map[string]string, 0)})
+	_, token := user1.Authenticate("1234")
 
 	r, _ := http.NewRequest("DELETE", "/sona/v1/zero/attachment/test.jpg", nil)
 	w := httptest.NewRecorder()
+	r.Header.Set("X-Sona-Token", token.Token)
 
 	router.ServeHTTP(w, r)
 
@@ -383,9 +505,11 @@ func TestDeleteAttachmentWithInvalidId(t *testing.T) {
 func TestDeleteAttachmentWithNonExistantIncidentId(t *testing.T) {
 	setup()
 	incidentManager.AddIncident(&Incident{"Incident", 0, "Test", "Tester", "open", make(map[string]string, 0)})
+	_, token := user1.Authenticate("1234")
 
 	r, _ := http.NewRequest("DELETE", "/sona/v1/3/attachment/test.jpg", nil)
 	w := httptest.NewRecorder()
+	r.Header.Set("X-Sona-Token", token.Token)
 
 	router.ServeHTTP(w, r)
 
@@ -398,9 +522,11 @@ func TestDeleteAttachmentWithNonExistantAttachmentId(t *testing.T) {
 	setup()
 	incidentManager.AddIncident(&Incident{"Incident", 0, "Test", "Tester", "open", make(map[string]string, 0)})
 	incidentManager.AddAttachment(0, Attachment{"somefile.png", "2009-11-10T23:00:00Z"})
+	_, token := user1.Authenticate("1234")
 
 	r, _ := http.NewRequest("DELETE", "/sona/v1/0/attachment/test.jpg", nil)
 	w := httptest.NewRecorder()
+	r.Header.Set("X-Sona-Token", token.Token)
 
 	router.ServeHTTP(w, r)
 
@@ -413,13 +539,31 @@ func TestDeleteAttachment(t *testing.T) {
 	setup()
 	incidentManager.AddIncident(&Incident{"Incident", 0, "Test", "Tester", "open", make(map[string]string, 0)})
 	incidentManager.AddAttachment(0, Attachment{"test.jpg", "2009-11-10T23:00:00Z"})
+	_, token := user1.Authenticate("1234")
 
 	r, _ := http.NewRequest("DELETE", "/sona/v1/0/attachment/test.jpg", nil)
 	w := httptest.NewRecorder()
+	r.Header.Set("X-Sona-Token", token.Token)
 
 	router.ServeHTTP(w, r)
 
 	if w.Result().StatusCode != 200 {
 		t.Errorf("Expected 200 status code got %v", w.Result())
+	}
+}
+
+func TestDeleteAttachmentWithInvalidToken(t *testing.T) {
+	setup()
+	incidentManager.AddIncident(&Incident{"Incident", 0, "Test", "Tester", "open", make(map[string]string, 0)})
+	incidentManager.AddAttachment(0, Attachment{"test.jpg", "2009-11-10T23:00:00Z"})
+
+	r, _ := http.NewRequest("DELETE", "/sona/v1/0/attachment/test.jpg", nil)
+	w := httptest.NewRecorder()
+	r.Header.Set("X-Sona-Token", "badToken")
+
+	router.ServeHTTP(w, r)
+
+	if w.Result().StatusCode != 403 {
+		t.Errorf("Expected 403 status code got %v", w.Result())
 	}
 }

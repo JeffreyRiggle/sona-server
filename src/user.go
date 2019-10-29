@@ -1,8 +1,8 @@
 package main
 
 import (
-	"strings"
 	"strconv"
+	"strings"
 )
 
 type AddUser struct {
@@ -15,12 +15,13 @@ type AddUser struct {
 }
 
 type User struct {
-	EmailAddress string `json:"emailAddress"`
-	UserName     string `json:"userName"`
-	FirstName    string `json:"firstName"`
-	LastName     string `json:"lastName"`
-	Gender       string `json:"gender"`
-	Id           int    `json:"id"`
+	EmailAddress string   `json:"emailAddress"`
+	UserName     string   `json:"userName"`
+	FirstName    string   `json:"firstName"`
+	LastName     string   `json:"lastName"`
+	Gender       string   `json:"gender"`
+	Id           int      `json:"id"`
+	Permissions  []string `json:"permissions"`
 }
 
 type UserPassword struct {

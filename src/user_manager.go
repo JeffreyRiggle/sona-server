@@ -6,6 +6,7 @@ type UserManager interface {
 	UpdateUser(userId int, user *User) bool
 	RemoveUser(userId int) bool
 	SetUserPassword(user User, password string)
+	SetPermissions(userId int, permissions []string) bool
 	AuthenticateUser(user User, password string) (bool, TokenResponse)
 	ValidateUser(token string) bool
 }

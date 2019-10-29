@@ -108,6 +108,12 @@ var routes = Routes{
 		HandleChangePassword,
 	},
 	Route{
+		"UserPermissions",
+		"PUT",
+		"/sona/v1/users/{userId}/permissions",
+		HandleSetPermissions,
+	},
+	Route{
 		"Authenticate",
 		"POST",
 		"/sona/v1/authenticate",

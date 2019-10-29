@@ -1,17 +1,17 @@
 package main
 
 import (
+	"crypto/sha256"
 	"io"
 	"strings"
-	"crypto/sha256"
 )
 
 type RuntimeUserManager struct {
-	Users map[int]*User
-	Passwords map[int]string
-	Tokens map[int][]string
+	Users              map[int]*User
+	Passwords          map[int]string
+	Tokens             map[int][]string
+	DefaultPermissions []string
 }
-
 
 func (manager RuntimeUserManager) AddUser(user *AddUser) (bool, User) {
 	var cuser, id = manager.convertAddUser(user)
@@ -22,14 +22,16 @@ func (manager RuntimeUserManager) AddUser(user *AddUser) (bool, User) {
 }
 
 func (manager RuntimeUserManager) convertAddUser(user *AddUser) (*User, int) {
-	var retVal User;
+	var retVal User
 	var id = len(manager.Users)
 
+	retVal.Permissions = make([]string, len(manager.DefaultPermissions))
+	copy(retVal.Permissions, manager.DefaultPermissions)
 	retVal.Id = id
 	retVal.EmailAddress = user.EmailAddress
 	retVal.UserName = user.UserName
 	retVal.FirstName = user.FirstName
-	
+
 	if len(user.LastName) != 0 {
 		retVal.LastName = user.LastName
 	}
@@ -59,7 +61,6 @@ func (manager RuntimeUserManager) RemoveUser(userId int) bool {
 	return true
 }
 
-
 func (manager RuntimeUserManager) SetUserPassword(user User, password string) {
 	manager.Passwords[user.Id] = createPasswordHash(user, password)
 }
@@ -68,7 +69,7 @@ func (manager RuntimeUserManager) AuthenticateUser(user User, password string) (
 	auth := createPasswordHash(user, password) == manager.Passwords[user.Id]
 
 	if !auth {
-		return auth, TokenResponse {""}
+		return auth, TokenResponse{""}
 	}
 
 	token := GenerateToken(user)
@@ -85,7 +86,7 @@ func (manager RuntimeUserManager) ValidateUser(token string) bool {
 	userId := GetTokenUser(token)
 
 	found := -1
-	
+
 	for i, v := range manager.Tokens[userId] {
 		if v == token {
 			found = i
@@ -105,6 +106,13 @@ func (manager RuntimeUserManager) ValidateUser(token string) bool {
 	}
 
 	return !expired
+}
+
+func (manager RuntimeUserManager) SetPermissions(userId int, permissions []string) bool {
+	user := manager.Users[userId]
+	copy(user.Permissions, permissions)
+	manager.Users[userId] = user
+	return true
 }
 
 func createPasswordHash(user User, password string) string {

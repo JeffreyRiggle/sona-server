@@ -85,7 +85,7 @@ func useDefaultConfig() {
 	logManager.Initialize()
 	fileManager = LocalFileManager{currentUser.HomeDir}
 	incidentManager = RuntimeIncidentManager{make(map[int64]*Incident), make(map[int][]Attachment)}
-	userManager = RuntimeUserManager{make(map[int]*User), make(map[int]string), make(map[int][]string)}
+	userManager = RuntimeUserManager{make(map[int]*User), make(map[int]string), make(map[int][]string), make([]string, 1)}
 }
 
 func setupLogManager(config Config) {
@@ -194,5 +194,5 @@ func setupDataStoreIncidentManager(config Config) {
 }
 
 func setupUsermanager(config Config) {
-	userManager = RuntimeUserManager{make(map[int]*User), make(map[int]string), make(map[int][]string)}
+	userManager = RuntimeUserManager{make(map[int]*User), make(map[int]string), make(map[int][]string), config.User.DefaultPermissions}
 }

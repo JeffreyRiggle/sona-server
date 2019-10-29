@@ -19,7 +19,7 @@ func userTestSetup() {
 		http.Handle("/", usrRouter)
 	}
 
-	userManager = RuntimeUserManager{make(map[int]*User), make(map[int]string), make(map[int][]string)}
+	userManager = RuntimeUserManager{make(map[int]*User), make(map[int]string), make(map[int][]string), make([]string, 0)}
 	hookManager = HookManager{make([]WebHook, 0), make([]WebHook, 0), make([]WebHook, 0), make([]WebHook, 0), make([]WebHook, 0)}
 }
 

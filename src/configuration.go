@@ -13,6 +13,7 @@ type Config struct {
 	S3Config            S3FileManagerConfig    `json:"s3config"`
 	Hooks               WebHooks               `json:"webhooks"`
 	Logging             LogConfig              `json:"logging"`
+	User                UserConfig             `json:"userconfig"`
 }
 
 // WebHook defines an endpoint to call.
@@ -114,4 +115,10 @@ type MySQLConfig struct {
 type DataStoreConfig struct {
 	ProjectName string `json:"projectname"`
 	AuthFile    string `json:"authfile"`
+}
+
+// UserConfig to use when creating new users
+// The DefaultPermissions are the permissions that should be granted to all new users.
+type UserConfig struct {
+	DefaultPermissions []string `json:"defaultpermissions"`
 }

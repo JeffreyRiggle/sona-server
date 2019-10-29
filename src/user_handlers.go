@@ -52,7 +52,7 @@ func convertAddUser(body io.ReadCloser) (AddUser, bool) {
 		return user, false
 	}
 
-	if len(user.EmailAddress) == 0 || len(user.UserName) == 0  || len(user.Password) == 0 {
+	if len(user.EmailAddress) == 0 || len(user.UserName) == 0 || len(user.Password) == 0 {
 		return user, false
 	}
 
@@ -110,6 +110,48 @@ func convertUpdateUser(body io.ReadCloser) (User, bool) {
 	}
 
 	return update, true
+}
+
+func HandleSetPermissions(w http.ResponseWriter, r *http.Request) {
+	logManager.LogPrint("Got User Update")
+	w.Header().Set("Access-Control-Allow-Origin", "*")
+	w.Header().Set("Content-Type", "application/json")
+
+	token := r.Header.Get("X-Sona-Token")
+	if !userManager.ValidateUser(token) {
+		logManager.LogPrintf("Invalid Token %v used", token)
+		w.WriteHeader(http.StatusForbidden)
+		return
+	}
+
+	vars := mux.Vars(r)
+
+	userId, err := strconv.Atoi(vars["userId"])
+
+	if err != nil {
+		logManager.LogPrintf("Error converting userId %v", err)
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+
+	decoder := json.NewDecoder(r.Body)
+
+	var permissions []string
+	err2 := decoder.Decode(&permissions)
+
+	if err2 != nil {
+		logManager.LogPrintf("Error decoding new permissions %v", err2)
+		panic(err2)
+	}
+
+	logManager.LogPrintf("Attempting to set permissions to %v", permissions)
+
+	if userManager.SetPermissions(userId, permissions) {
+		w.WriteHeader(http.StatusOK)
+		return
+	}
+
+	w.WriteHeader(http.StatusInternalServerError)
 }
 
 func HandleGetUser(w http.ResponseWriter, r *http.Request) {

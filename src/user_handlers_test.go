@@ -14,9 +14,9 @@ import (
 var usrRouter *mux.Router
 
 func userTestSetup() {
-	if router == nil {
+	if usrRouter == nil {
 		usrRouter = NewRouter()
-		http.Handle("/", usrRouter)
+		http.Handle("/sona/v1/users", usrRouter)
 	}
 
 	userManager = RuntimeUserManager{make(map[int]*User), make(map[int]string), make(map[int][]string), make([]string, 0)}

@@ -61,6 +61,12 @@ func HandleIncidentUpdate(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if !HasPermission(token, availablePermissions.modifyIncident) {
+		logManager.LogPrintf("Token does not allow for modify incident", token)
+		w.WriteHeader(http.StatusUnauthorized)
+		return
+	}
+
 	vars := mux.Vars(r)
 
 	incidentId, err := strconv.Atoi(vars["incidentId"])
@@ -132,6 +138,12 @@ func HandleGetAttachments(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if !HasPermission(token, availablePermissions.viewIncident) {
+		logManager.LogPrintf("Token does not allow for view incident", token)
+		w.WriteHeader(http.StatusUnauthorized)
+		return
+	}
+
 	vars := mux.Vars(r)
 
 	incidentId, err := strconv.Atoi(vars["incidentId"])
@@ -170,6 +182,12 @@ func HandleUploadAttachment(w http.ResponseWriter, r *http.Request) {
 	if !userManager.ValidateUser(token) {
 		logManager.LogPrintf("Invalid Token %v used", token)
 		w.WriteHeader(http.StatusForbidden)
+		return
+	}
+
+	if !HasPermission(token, availablePermissions.modifyIncident) {
+		logManager.LogPrintf("Token does not allow for modify incident", token)
+		w.WriteHeader(http.StatusUnauthorized)
 		return
 	}
 
@@ -230,6 +248,12 @@ func HandleDownloadAttachment(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if !HasPermission(token, availablePermissions.viewIncident) {
+		logManager.LogPrintf("Token does not allow for view incident", token)
+		w.WriteHeader(http.StatusUnauthorized)
+		return
+	}
+
 	vars := mux.Vars(r)
 
 	incidentId := vars["incidentId"]
@@ -265,6 +289,12 @@ func HandleRemoveAttachment(w http.ResponseWriter, r *http.Request) {
 	if !userManager.ValidateUser(token) {
 		logManager.LogPrintf("Invalid Token %v used", token)
 		w.WriteHeader(http.StatusForbidden)
+		return
+	}
+
+	if !HasPermission(token, availablePermissions.modifyIncident) {
+		logManager.LogPrintf("Token does not allow for modify incident", token)
+		w.WriteHeader(http.StatusUnauthorized)
 		return
 	}
 
@@ -337,6 +367,12 @@ func HandleGetIncident(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if !HasPermission(token, availablePermissions.viewIncident) {
+		logManager.LogPrintf("Token does not allow for view incident", token)
+		w.WriteHeader(http.StatusUnauthorized)
+		return
+	}
+
 	vars := mux.Vars(r)
 
 	incidentId, err := strconv.Atoi(vars["incidentId"])
@@ -372,6 +408,12 @@ func HandleGetIncidents(w http.ResponseWriter, r *http.Request) {
 	if !userManager.ValidateUser(token) {
 		logManager.LogPrintf("Invalid Token %v used", token)
 		w.WriteHeader(http.StatusForbidden)
+		return
+	}
+
+	if !HasPermission(token, availablePermissions.viewIncident) {
+		logManager.LogPrintf("Token does not allow for view incident", token)
+		w.WriteHeader(http.StatusUnauthorized)
 		return
 	}
 

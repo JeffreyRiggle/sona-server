@@ -81,6 +81,12 @@ func HandleUpdateUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if !HasPermission(token, availablePermissions.modifyUser) && GetTokenUser(token) != userId {
+		logManager.LogPrintf("Token does not allow for modify user", token)
+		w.WriteHeader(http.StatusUnauthorized)
+		return
+	}
+
 	update, passed := convertUpdateUser(r.Body)
 
 	if !passed {
@@ -121,6 +127,12 @@ func HandleSetPermissions(w http.ResponseWriter, r *http.Request) {
 	if !userManager.ValidateUser(token) {
 		logManager.LogPrintf("Invalid Token %v used", token)
 		w.WriteHeader(http.StatusForbidden)
+		return
+	}
+
+	if !HasPermission(token, availablePermissions.master) {
+		logManager.LogPrintf("Token does not allow for modify user", token)
+		w.WriteHeader(http.StatusUnauthorized)
 		return
 	}
 
@@ -174,6 +186,12 @@ func HandleGetUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if !HasPermission(token, availablePermissions.viewUser) && GetTokenUser(token) != userId {
+		logManager.LogPrintf("Token does not allow for view user", token)
+		w.WriteHeader(http.StatusUnauthorized)
+		return
+	}
+
 	if val, ok := userManager.GetUser(userId); ok {
 		logManager.LogPrintf("Got State request for %v.", userId)
 		w.Header().Set("Content-Type", "application/json;charset=UTF-8")
@@ -201,6 +219,12 @@ func HandleDeleteUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if !HasPermission(token, availablePermissions.deleteUser) {
+		logManager.LogPrintf("Token does not allow for modify user", token)
+		w.WriteHeader(http.StatusUnauthorized)
+		return
+	}
+
 	vars := mux.Vars(r)
 
 	userId, err := strconv.Atoi(vars["userId"])
@@ -223,6 +247,13 @@ func HandleChangePassword(w http.ResponseWriter, r *http.Request) {
 	logManager.LogPrintln("Got user password change request.")
 	w.Header().Set("Access-Control-Allow-Origin", "*")
 
+	token := r.Header.Get("X-Sona-Token")
+	if !userManager.ValidateUser(token) {
+		logManager.LogPrintf("Invalid Token %v used", token)
+		w.WriteHeader(http.StatusForbidden)
+		return
+	}
+
 	vars := mux.Vars(r)
 
 	userId, err := strconv.Atoi(vars["userId"])
@@ -230,6 +261,12 @@ func HandleChangePassword(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		logManager.LogPrintf("Error converting userId %v", err)
 		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+
+	if !HasPermission(token, availablePermissions.master) && GetTokenUser(token) != userId {
+		logManager.LogPrintf("Token does not allow for modify user", token)
+		w.WriteHeader(http.StatusUnauthorized)
 		return
 	}
 

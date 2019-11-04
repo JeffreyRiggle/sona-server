@@ -67,7 +67,7 @@ func HasPermission(token string, permission string) bool {
 	permissions := strings.Split(vals[3], ",")
 
 	for _, p := range permissions {
-		if p == permission {
+		if p == permission || p == availablePermissions.master {
 			return true
 		}
 	}

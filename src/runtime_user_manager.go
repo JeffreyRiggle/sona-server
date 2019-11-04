@@ -110,7 +110,7 @@ func (manager RuntimeUserManager) ValidateUser(token string) bool {
 
 func (manager RuntimeUserManager) SetPermissions(userId int, permissions []string) bool {
 	user := manager.Users[userId]
-	copy(user.Permissions, permissions)
+	user.Permissions = permissions
 	manager.Users[userId] = user
 	return true
 }

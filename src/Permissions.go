@@ -11,8 +11,6 @@ type AvailablePermissions struct {
 	master         string
 }
 
-// TODO start enforcing permissions
-// TODO create default administrator user that has master
 var availablePermissions = AvailablePermissions{
 	"incident-view",
 	"incident-modify",

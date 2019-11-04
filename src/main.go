@@ -14,8 +14,16 @@ import (
 )
 
 var logManager LogManager
+var admin = AddUser{
+	EmailAddress: "a@b.c",
+	FirstName:    "Admin",
+	UserName:     "Administrator",
+	Password:     "admin",
+}
+var adminPermissions = make([]string, 0)
 
 func main() {
+	adminPermissions = append(adminPermissions, availablePermissions.master)
 	var path string
 	if len(os.Args) > 1 {
 		path = os.Args[1]
@@ -86,6 +94,8 @@ func useDefaultConfig() {
 	fileManager = LocalFileManager{currentUser.HomeDir}
 	incidentManager = RuntimeIncidentManager{make(map[int64]*Incident), make(map[int][]Attachment)}
 	userManager = RuntimeUserManager{make(map[int]*User), make(map[int]string), make(map[int][]string), make([]string, 1)}
+	_, res := userManager.AddUser(&admin)
+	userManager.SetPermissions(res.Id, adminPermissions)
 }
 
 func setupLogManager(config Config) {
@@ -195,4 +205,6 @@ func setupDataStoreIncidentManager(config Config) {
 
 func setupUsermanager(config Config) {
 	userManager = RuntimeUserManager{make(map[int]*User), make(map[int]string), make(map[int][]string), config.User.DefaultPermissions}
+	_, res := userManager.AddUser(&admin)
+	userManager.SetPermissions(res.Id, adminPermissions)
 }

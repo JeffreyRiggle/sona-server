@@ -62,7 +62,7 @@ func TestCreateIncident(t *testing.T) {
 	inc.Description = "Some Test"
 	body, _ := json.Marshal(inc)
 
-	r, _ := http.NewRequest("POST", "/sona/v1/create", bytes.NewBuffer(body))
+	r, _ := http.NewRequest("POST", "/sona/v1/incidents", bytes.NewBuffer(body))
 	w := httptest.NewRecorder()
 
 	router.ServeHTTP(w, r)
@@ -99,7 +99,7 @@ func TestCreateIncidentWithInvalidRequest(t *testing.T) {
 	att := Attachment{}
 	body, _ := json.Marshal(att)
 
-	r, _ := http.NewRequest("POST", "/sona/v1/create", bytes.NewBuffer(body))
+	r, _ := http.NewRequest("POST", "/sona/v1/incidents", bytes.NewBuffer(body))
 	w := httptest.NewRecorder()
 
 	router.ServeHTTP(w, r)
@@ -121,7 +121,7 @@ func TestIncidentUpdateWithValidToken(t *testing.T) {
 	_, token := user1.Authenticate("1234")
 	body, _ := json.Marshal(update)
 
-	r, _ := http.NewRequest("PUT", "/sona/v1/0/update", bytes.NewBuffer(body))
+	r, _ := http.NewRequest("PUT", "/sona/v1/incidents/0", bytes.NewBuffer(body))
 	r.Header.Set("X-Sona-Token", token.Token)
 	w := httptest.NewRecorder()
 
@@ -142,7 +142,7 @@ func TestIncidentUpdateWithInvalidValidToken(t *testing.T) {
 	update := IncidentUpdate{"New State", "", "", m}
 	body, _ := json.Marshal(update)
 
-	r, _ := http.NewRequest("PUT", "/sona/v1/0/update", bytes.NewBuffer(body))
+	r, _ := http.NewRequest("PUT", "/sona/v1/incidents/0", bytes.NewBuffer(body))
 	r.Header.Set("X-Sona-Token", "badValue")
 	w := httptest.NewRecorder()
 
@@ -164,7 +164,7 @@ func TestIncidentUpdateWithInvalidPermissionsToken(t *testing.T) {
 	body, _ := json.Marshal(update)
 	_, token := user1.Authenticate("1234")
 
-	r, _ := http.NewRequest("PUT", "/sona/v1/0/update", bytes.NewBuffer(body))
+	r, _ := http.NewRequest("PUT", "/sona/v1/incidents/0", bytes.NewBuffer(body))
 	r.Header.Set("X-Sona-Token", token.Token)
 	w := httptest.NewRecorder()
 
@@ -181,7 +181,7 @@ func TestIncidentUpdateWithInvalidId(t *testing.T) {
 	body, _ := json.Marshal(IncidentUpdate{})
 	_, token := user1.Authenticate("1234")
 
-	r, _ := http.NewRequest("PUT", "/sona/v1/badvalue/update", bytes.NewBuffer(body))
+	r, _ := http.NewRequest("PUT", "/sona/v1/incidents/badvalue", bytes.NewBuffer(body))
 	r.Header.Set("X-Sona-Token", token.Token)
 	w := httptest.NewRecorder()
 
@@ -198,7 +198,7 @@ func TestIncidentUpdateWithNonExistantId(t *testing.T) {
 	body, _ := json.Marshal(IncidentUpdate{})
 	_, token := user1.Authenticate("1234")
 
-	r, _ := http.NewRequest("PUT", "/sona/v1/3/update", bytes.NewBuffer(body))
+	r, _ := http.NewRequest("PUT", "/sona/v1/incidents/3", bytes.NewBuffer(body))
 	r.Header.Set("X-Sona-Token", token.Token)
 	w := httptest.NewRecorder()
 
@@ -215,7 +215,7 @@ func TestGetIncidentHandler(t *testing.T) {
 	incidentManager.AddIncident(&Incident{"Incident", 0, "Test", "Tester", "open", make(map[string]string, 0)})
 	_, token := user1.Authenticate("1234")
 
-	r, _ := http.NewRequest("GET", "/sona/v1/0", nil)
+	r, _ := http.NewRequest("GET", "/sona/v1/incidents/0", nil)
 	r.Header.Set("X-Sona-Token", token.Token)
 	w := httptest.NewRecorder()
 
@@ -252,7 +252,7 @@ func TestGetIncidentHandlerWithInvalidToken(t *testing.T) {
 	setup()
 	incidentManager.AddIncident(&Incident{"Incident", 0, "Test", "Tester", "open", make(map[string]string, 0)})
 
-	r, _ := http.NewRequest("GET", "/sona/v1/0", nil)
+	r, _ := http.NewRequest("GET", "/sona/v1/incidents/0", nil)
 	r.Header.Set("X-Sona-Token", "badToken")
 	w := httptest.NewRecorder()
 
@@ -268,7 +268,7 @@ func TestGetIncidentHandlerWithInvalidPermissions(t *testing.T) {
 	incidentManager.AddIncident(&Incident{"Incident", 0, "Test", "Tester", "open", make(map[string]string, 0)})
 	_, token := user1.Authenticate("1234")
 
-	r, _ := http.NewRequest("GET", "/sona/v1/zero", nil)
+	r, _ := http.NewRequest("GET", "/sona/v1/incidents/zero", nil)
 	r.Header.Set("X-Sona-Token", token.Token)
 	w := httptest.NewRecorder()
 
@@ -285,7 +285,7 @@ func TestGetIncidentHandlerWithInvalidId(t *testing.T) {
 	incidentManager.AddIncident(&Incident{"Incident", 0, "Test", "Tester", "open", make(map[string]string, 0)})
 	_, token := user1.Authenticate("1234")
 
-	r, _ := http.NewRequest("GET", "/sona/v1/zero", nil)
+	r, _ := http.NewRequest("GET", "/sona/v1/incidents/zero", nil)
 	r.Header.Set("X-Sona-Token", token.Token)
 	w := httptest.NewRecorder()
 
@@ -302,7 +302,7 @@ func TestGetIncidentHandlerWithNonExistantId(t *testing.T) {
 	incidentManager.AddIncident(&Incident{"Incident", 0, "Test", "Tester", "open", make(map[string]string, 0)})
 	_, token := user1.Authenticate("1234")
 
-	r, _ := http.NewRequest("GET", "/sona/v1/1", nil)
+	r, _ := http.NewRequest("GET", "/sona/v1/incidents/1", nil)
 	r.Header.Set("X-Sona-Token", token.Token)
 	w := httptest.NewRecorder()
 
@@ -412,7 +412,7 @@ func TestGetAttachmentWithInvalidId(t *testing.T) {
 	incidentManager.AddIncident(&Incident{"Incident", 0, "Test", "Tester", "open", make(map[string]string, 0)})
 	_, token := user1.Authenticate("1234")
 
-	r, _ := http.NewRequest("GET", "/sona/v1/zero/attachments", nil)
+	r, _ := http.NewRequest("GET", "/sona/v1/incidents/zero/attachments", nil)
 	r.Header.Set("X-Sona-Token", token.Token)
 	w := httptest.NewRecorder()
 
@@ -429,7 +429,7 @@ func TestGetAttachmentsWithNoAttached(t *testing.T) {
 	incidentManager.AddIncident(&Incident{"Incident", 0, "Test", "Tester", "open", make(map[string]string, 0)})
 	_, token := user1.Authenticate("1234")
 
-	r, _ := http.NewRequest("GET", "/sona/v1/0/attachments", nil)
+	r, _ := http.NewRequest("GET", "/sona/v1/incidents/0/attachments", nil)
 	r.Header.Set("X-Sona-Token", token.Token)
 	w := httptest.NewRecorder()
 
@@ -458,7 +458,7 @@ func TestGetAttachmentsWithAttached(t *testing.T) {
 	incidentManager.AddAttachment(0, Attachment{"testfile2.jpg", "2009-10-10T23:00:00Z"})
 	_, token := user1.Authenticate("1234")
 
-	r, _ := http.NewRequest("GET", "/sona/v1/0/attachments", nil)
+	r, _ := http.NewRequest("GET", "/sona/v1/incidents/0/attachments", nil)
 	w := httptest.NewRecorder()
 	r.Header.Set("X-Sona-Token", token.Token)
 
@@ -493,7 +493,7 @@ func TestGetAttachmentsWithAttachedAndInvalidToken(t *testing.T) {
 	incidentManager.AddAttachment(0, Attachment{"testfile.png", "2009-11-10T23:00:00Z"})
 	incidentManager.AddAttachment(0, Attachment{"testfile2.jpg", "2009-10-10T23:00:00Z"})
 
-	r, _ := http.NewRequest("GET", "/sona/v1/0/attachments", nil)
+	r, _ := http.NewRequest("GET", "/sona/v1/incidents/0/attachments", nil)
 	w := httptest.NewRecorder()
 	r.Header.Set("X-Sona-Token", "badToken")
 
@@ -511,7 +511,7 @@ func TestGetAttachmentsWithAttachedAndInvalidPermissions(t *testing.T) {
 	incidentManager.AddAttachment(0, Attachment{"testfile2.jpg", "2009-10-10T23:00:00Z"})
 	_, token := user1.Authenticate("1234")
 
-	r, _ := http.NewRequest("GET", "/sona/v1/0/attachments", nil)
+	r, _ := http.NewRequest("GET", "/sona/v1/incidents/0/attachments", nil)
 	w := httptest.NewRecorder()
 	r.Header.Set("X-Sona-Token", token.Token)
 
@@ -528,7 +528,7 @@ func TestUploadAttachmentWithInvalidId(t *testing.T) {
 	incidentManager.AddIncident(&Incident{"Incident", 0, "Test", "Tester", "open", make(map[string]string, 0)})
 	_, token := user1.Authenticate("1234")
 
-	r, _ := http.NewRequest("POST", "/sona/v1/zero/attachment", nil)
+	r, _ := http.NewRequest("POST", "/sona/v1/incidents/zero/attachment", nil)
 	w := httptest.NewRecorder()
 	r.Header.Set("X-Sona-Token", token.Token)
 
@@ -543,7 +543,7 @@ func TestUploadAttachmentWithInvalidToken(t *testing.T) {
 	setup()
 	incidentManager.AddIncident(&Incident{"Incident", 0, "Test", "Tester", "open", make(map[string]string, 0)})
 
-	r, _ := http.NewRequest("POST", "/sona/v1/0/attachment", nil)
+	r, _ := http.NewRequest("POST", "/sona/v1/incidents/0/attachment", nil)
 	w := httptest.NewRecorder()
 	r.Header.Set("X-Sona-Token", "badToken")
 
@@ -559,7 +559,7 @@ func TestUploadAttachmentWithInvalidPermissions(t *testing.T) {
 	incidentManager.AddIncident(&Incident{"Incident", 0, "Test", "Tester", "open", make(map[string]string, 0)})
 	_, token := user1.Authenticate("1234")
 
-	r, _ := http.NewRequest("POST", "/sona/v1/0/attachment", nil)
+	r, _ := http.NewRequest("POST", "/sona/v1/incidents/0/attachment", nil)
 	w := httptest.NewRecorder()
 	r.Header.Set("X-Sona-Token", token.Token)
 
@@ -576,7 +576,7 @@ func TestUploadAttachmentWithNonExistantId(t *testing.T) {
 	incidentManager.AddIncident(&Incident{"Incident", 0, "Test", "Tester", "open", make(map[string]string, 0)})
 	_, token := user1.Authenticate("1234")
 
-	r, _ := http.NewRequest("POST", "/sona/v1/3/attachment", nil)
+	r, _ := http.NewRequest("POST", "/sona/v1/incidents/3/attachment", nil)
 	w := httptest.NewRecorder()
 	r.Header.Set("X-Sona-Token", token.Token)
 
@@ -593,7 +593,7 @@ func TestDeleteAttachmentWithInvalidId(t *testing.T) {
 	incidentManager.AddIncident(&Incident{"Incident", 0, "Test", "Tester", "open", make(map[string]string, 0)})
 	_, token := user1.Authenticate("1234")
 
-	r, _ := http.NewRequest("DELETE", "/sona/v1/zero/attachment/test.jpg", nil)
+	r, _ := http.NewRequest("DELETE", "/sona/v1/incidents/zero/attachment/test.jpg", nil)
 	w := httptest.NewRecorder()
 	r.Header.Set("X-Sona-Token", token.Token)
 
@@ -610,7 +610,7 @@ func TestDeleteAttachmentWithNonExistantIncidentId(t *testing.T) {
 	incidentManager.AddIncident(&Incident{"Incident", 0, "Test", "Tester", "open", make(map[string]string, 0)})
 	_, token := user1.Authenticate("1234")
 
-	r, _ := http.NewRequest("DELETE", "/sona/v1/3/attachment/test.jpg", nil)
+	r, _ := http.NewRequest("DELETE", "/sona/v1/incidents/3/attachment/test.jpg", nil)
 	w := httptest.NewRecorder()
 	r.Header.Set("X-Sona-Token", token.Token)
 
@@ -628,7 +628,7 @@ func TestDeleteAttachmentWithNonExistantAttachmentId(t *testing.T) {
 	incidentManager.AddAttachment(0, Attachment{"somefile.png", "2009-11-10T23:00:00Z"})
 	_, token := user1.Authenticate("1234")
 
-	r, _ := http.NewRequest("DELETE", "/sona/v1/0/attachment/test.jpg", nil)
+	r, _ := http.NewRequest("DELETE", "/sona/v1/incidents/0/attachment/test.jpg", nil)
 	w := httptest.NewRecorder()
 	r.Header.Set("X-Sona-Token", token.Token)
 
@@ -646,7 +646,7 @@ func TestDeleteAttachment(t *testing.T) {
 	incidentManager.AddAttachment(0, Attachment{"test.jpg", "2009-11-10T23:00:00Z"})
 	_, token := user1.Authenticate("1234")
 
-	r, _ := http.NewRequest("DELETE", "/sona/v1/0/attachment/test.jpg", nil)
+	r, _ := http.NewRequest("DELETE", "/sona/v1/incidents/0/attachment/test.jpg", nil)
 	w := httptest.NewRecorder()
 	r.Header.Set("X-Sona-Token", token.Token)
 
@@ -662,7 +662,7 @@ func TestDeleteAttachmentWithInvalidToken(t *testing.T) {
 	incidentManager.AddIncident(&Incident{"Incident", 0, "Test", "Tester", "open", make(map[string]string, 0)})
 	incidentManager.AddAttachment(0, Attachment{"test.jpg", "2009-11-10T23:00:00Z"})
 
-	r, _ := http.NewRequest("DELETE", "/sona/v1/0/attachment/test.jpg", nil)
+	r, _ := http.NewRequest("DELETE", "/sona/v1/incidents/0/attachment/test.jpg", nil)
 	w := httptest.NewRecorder()
 	r.Header.Set("X-Sona-Token", "badToken")
 
@@ -679,7 +679,7 @@ func TestDeleteAttachmentWithInvalidPermissions(t *testing.T) {
 	incidentManager.AddAttachment(0, Attachment{"test.jpg", "2009-11-10T23:00:00Z"})
 	_, token := user1.Authenticate("1234")
 
-	r, _ := http.NewRequest("DELETE", "/sona/v1/0/attachment/test.jpg", nil)
+	r, _ := http.NewRequest("DELETE", "/sona/v1/incidents/0/attachment/test.jpg", nil)
 	w := httptest.NewRecorder()
 	r.Header.Set("X-Sona-Token", token.Token)
 

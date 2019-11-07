@@ -1,11 +1,11 @@
 {
-    "incidentmanagertype": 0,
+    "incidentmanagertype": 2,
     "filemanagertype": 0,
     "dynamodb": {
         "region": "us-east-1"
     },
     "mysql": {
-        "username": "admin",
+        "username": "root",
         "password": "1234",
         "host": "127.0.0.1",
         "port": "3306",

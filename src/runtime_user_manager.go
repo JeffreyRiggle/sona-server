@@ -7,9 +7,9 @@ import (
 )
 
 type RuntimeUserManager struct {
-	Users              map[int]*User
-	Passwords          map[int]string
-	Tokens             map[int][]string
+	Users              map[int64]*User
+	Passwords          map[int64]string
+	Tokens             map[int64][]string
 	DefaultPermissions []string
 }
 
@@ -21,9 +21,9 @@ func (manager RuntimeUserManager) AddUser(user *AddUser) (bool, User) {
 	return true, *cuser
 }
 
-func (manager RuntimeUserManager) convertAddUser(user *AddUser) (*User, int) {
+func (manager RuntimeUserManager) convertAddUser(user *AddUser) (*User, int64) {
 	var retVal User
-	var id = len(manager.Users)
+	var id = int64(len(manager.Users))
 
 	retVal.Permissions = make([]string, len(manager.DefaultPermissions))
 	copy(retVal.Permissions, manager.DefaultPermissions)
@@ -43,7 +43,7 @@ func (manager RuntimeUserManager) convertAddUser(user *AddUser) (*User, int) {
 	return &retVal, id
 }
 
-func (manager RuntimeUserManager) GetUser(userId int) (User, bool) {
+func (manager RuntimeUserManager) GetUser(userId int64) (User, bool) {
 	if val, ok := manager.Users[userId]; ok {
 		return *val, true
 	}
@@ -51,12 +51,12 @@ func (manager RuntimeUserManager) GetUser(userId int) (User, bool) {
 	return User{}, false
 }
 
-func (manager RuntimeUserManager) UpdateUser(userId int, user *User) bool {
+func (manager RuntimeUserManager) UpdateUser(userId int64, user *User) bool {
 	manager.Users[userId] = user
 	return true
 }
 
-func (manager RuntimeUserManager) RemoveUser(userId int) bool {
+func (manager RuntimeUserManager) RemoveUser(userId int64) bool {
 	delete(manager.Users, userId)
 	return true
 }
@@ -108,7 +108,7 @@ func (manager RuntimeUserManager) ValidateUser(token string) bool {
 	return !expired
 }
 
-func (manager RuntimeUserManager) SetPermissions(userId int, permissions []string) bool {
+func (manager RuntimeUserManager) SetPermissions(userId int64, permissions []string) bool {
 	user := manager.Users[userId]
 	user.Permissions = permissions
 	manager.Users[userId] = user

@@ -40,7 +40,7 @@ func setup() {
 	}
 
 	incidentManager = RuntimeIncidentManager{make(map[int64]*Incident), make(map[int][]Attachment)}
-	userManager = RuntimeUserManager{make(map[int]*User), make(map[int]string), make(map[int][]string), make([]string, 0)}
+	userManager = RuntimeUserManager{make(map[int64]*User), make(map[int64]string), make(map[int64][]string), make([]string, 0)}
 	hookManager = HookManager{make([]WebHook, 0), make([]WebHook, 0), make([]WebHook, 0), make([]WebHook, 0), make([]WebHook, 0)}
 	fileManager = FakeFileManager{}
 

@@ -21,11 +21,11 @@ func GenerateToken(user User) TokenResponse {
 	logManager.LogPrintf("Token will expire at %v\n", timeout)
 
 	permissions := strings.Join(user.Permissions, ",")
-	val := strconv.Itoa(user.Id) + ":" + id + ":" + strconv.FormatInt(timeout.UnixNano(), 10) + ":" + permissions
+	val := strconv.FormatInt(user.Id, 10) + ":" + id + ":" + strconv.FormatInt(timeout.UnixNano(), 10) + ":" + permissions
 	return TokenResponse{b64.StdEncoding.EncodeToString([]byte(val))}
 }
 
-func GetTokenUser(token string) int {
+func GetTokenUser(token string) int64 {
 	decoded, _ := b64.StdEncoding.DecodeString(token)
 	vals := strings.Split(string(decoded), ":")
 
@@ -33,7 +33,7 @@ func GetTokenUser(token string) int {
 		return -1
 	}
 
-	retVal, _ := strconv.Atoi(vals[0])
+	retVal, _ := strconv.ParseInt(vals[0], 10, 64)
 
 	return retVal
 }

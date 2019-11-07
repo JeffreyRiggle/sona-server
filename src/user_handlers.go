@@ -73,7 +73,7 @@ func HandleUpdateUser(w http.ResponseWriter, r *http.Request) {
 
 	vars := mux.Vars(r)
 
-	userId, err := strconv.Atoi(vars["userId"])
+	userId, err := strconv.ParseInt(vars["userId"], 10, 64)
 
 	if err != nil {
 		logManager.LogPrintf("Error converting userId %v", err)
@@ -138,7 +138,7 @@ func HandleSetPermissions(w http.ResponseWriter, r *http.Request) {
 
 	vars := mux.Vars(r)
 
-	userId, err := strconv.Atoi(vars["userId"])
+	userId, err := strconv.ParseInt(vars["userId"], 10, 64)
 
 	if err != nil {
 		logManager.LogPrintf("Error converting userId %v", err)
@@ -179,7 +179,7 @@ func HandleGetUser(w http.ResponseWriter, r *http.Request) {
 
 	vars := mux.Vars(r)
 
-	userId, err := strconv.Atoi(vars["userId"])
+	userId, err := strconv.ParseInt(vars["userId"], 10, 64)
 	if err != nil {
 		logManager.LogPrintf("Error converting userId %v", err)
 		w.WriteHeader(http.StatusBadRequest)
@@ -227,7 +227,7 @@ func HandleDeleteUser(w http.ResponseWriter, r *http.Request) {
 
 	vars := mux.Vars(r)
 
-	userId, err := strconv.Atoi(vars["userId"])
+	userId, err := strconv.ParseInt(vars["userId"], 10, 64)
 
 	if err != nil {
 		logManager.LogPrintf("Error converting userId %v", err)
@@ -256,7 +256,7 @@ func HandleChangePassword(w http.ResponseWriter, r *http.Request) {
 
 	vars := mux.Vars(r)
 
-	userId, err := strconv.Atoi(vars["userId"])
+	userId, err := strconv.ParseInt(vars["userId"], 10, 64)
 
 	if err != nil {
 		logManager.LogPrintf("Error converting userId %v", err)

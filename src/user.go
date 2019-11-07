@@ -20,12 +20,12 @@ type User struct {
 	FirstName    string   `json:"firstName"`
 	LastName     string   `json:"lastName"`
 	Gender       string   `json:"gender"`
-	Id           int      `json:"id"`
+	Id           int64    `json:"id"`
 	Permissions  []string `json:"permissions"`
 }
 
 type UserPassword struct {
-	Id       int    `json:"id"`
+	Id       int64  `json:"id"`
 	Password string `json:"password"`
 }
 
@@ -44,7 +44,7 @@ func (user User) Authenticate(password string) (bool, TokenResponse) {
 
 func getUserPropertyValue(key string, user User) string {
 	if strings.EqualFold(key, "id") {
-		return strconv.Itoa(user.Id)
+		return strconv.FormatInt(user.Id, 10)
 	}
 	if strings.EqualFold(key, "username") {
 		return user.UserName

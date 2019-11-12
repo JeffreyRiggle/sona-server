@@ -100,15 +100,15 @@ func (manager MySQLUserManager) GetUser(userId int64) (User, bool) {
 	retVal := User{}
 	var (
 		id           int64
-		incidenttype string
-		description  string
-		reporter     string
-		state        string
-		attname      sql.NullString
-		attvalue     sql.NullString
+		username     string
+		firstname    string
+		lastname     string
+		emailaddress string
+		gender       string
+		permissions  string
 	)
 
-	rows, err := manager.Connection.Query("SELECT Id, Type, Description, Reporter, State, AttributeName, AttributeValue "+
+	rows, err := manager.Connection.Query("SELECT Id, UserName, FirstName, LastName, EmailAddress, Gender, Permissions "+
 		"FROM Users "+
 		"WHERE Id = ?", userId)
 
@@ -119,13 +119,19 @@ func (manager MySQLUserManager) GetUser(userId int64) (User, bool) {
 
 	defer rows.Close()
 	for rows.Next() {
-		err := rows.Scan(&id, &incidenttype, &description, &reporter, &state, &attname, &attvalue)
+		err := rows.Scan(&id, &username, &firstname, &lastname, &emailaddress, &gender, &permissions)
 		if err != nil {
 			logManager.LogPrintln(err)
 		}
 
-		if retVal.Id == 0 {
-			retVal = User{}
+		retVal = User{
+			Id:           id,
+			UserName:     username,
+			FirstName:    firstname,
+			LastName:     lastname,
+			EmailAddress: emailaddress,
+			Gender:       gender,
+			Permissions:  strings.Split(permissions, ","),
 		}
 	}
 
@@ -134,21 +140,84 @@ func (manager MySQLUserManager) GetUser(userId int64) (User, bool) {
 }
 
 func (manager MySQLUserManager) UpdateUser(userId int64, user *User) bool {
-	// TODO
+	usr, pass := manager.GetUser(userId)
+
+	if !pass {
+		return false
+	}
+
+	if !updateUser(&usr, *user) {
+		return true
+	}
+
+	stmt, err := manager.Connection.Prepare("UPDATE Users SET UserName = ? , FirstName = ?, LastName = ?, Gender = ? WHERE Id = ?")
+	if err != nil {
+		logManager.LogPrintf("Error occurred when preparing update user %v", err)
+		return false
+	}
+
+	_, err = stmt.Exec(usr.UserName, usr.FirstName, usr.LastName, usr.Gender, strings.Join(usr.Permissions, ","), userId)
+
+	if err != nil {
+		logManager.LogPrintf("Error occurred when executing update user %v", err)
+		return false
+	}
+
 	return true
 }
 
 func (manager MySQLUserManager) RemoveUser(userId int64) bool {
-	// TODO
+	stmt, err := manager.Connection.Prepare("DELETE FROM Users WHERE Id = ?")
+	if err != nil {
+		logManager.LogPrintf("Error occurred when preparing remove user %v", err)
+		return false
+	}
+
+	_, err = stmt.Exec(userId)
+
+	if err != nil {
+		logManager.LogPrintf("Error occurred when executing remove user %v", err)
+		return false
+	}
+
 	return true
 }
 
 func (manager MySQLUserManager) SetUserPassword(user User, password string) {
-	// TODO
+	stmt, err := manager.Connection.Prepare("UPDATE Users SET Password = ? WHERE Id = ?")
+	if err != nil {
+		logManager.LogPrintf("Error occurred when preparing update user password %v", err)
+		return
+	}
+
+	_, err = stmt.Exec(password, user.Id)
+
+	if err != nil {
+		logManager.LogPrintf("Error occurred when executing update user password %v", err)
+		return
+	}
 }
 
 func (manager MySQLUserManager) SetPermissions(userId int64, permissions []string) bool {
-	// TODO
+	usr, pass := manager.GetUser(userId)
+
+	if !pass {
+		return false
+	}
+
+	stmt, err := manager.Connection.Prepare("UPDATE Users SET Permissions = ? WHERE Id = ?")
+	if err != nil {
+		logManager.LogPrintf("Error occurred when preparing update user permissions %v", err)
+		return false
+	}
+
+	_, err = stmt.Exec(strings.Join(usr.Permissions, ","), userId)
+
+	if err != nil {
+		logManager.LogPrintf("Error occurred when executing update user permissions %v", err)
+		return false
+	}
+
 	return true
 }
 
@@ -162,7 +231,7 @@ func (manager MySQLUserManager) ValidateUser(token string) bool {
 	return true
 }
 
-// CleanUp will do any required cleanup actions on the incident manager.
+// CleanUp will do any required cleanup actions on the user manager.
 func (manager MySQLUserManager) CleanUp() {
 	logManager.LogPrintln("Closing database connection")
 	if manager.Connection != nil {

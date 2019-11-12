@@ -42,6 +42,36 @@ func (user User) Authenticate(password string) (bool, TokenResponse) {
 	return userManager.AuthenticateUser(user, password)
 }
 
+func updateUser(original *User, updated User) bool {
+	changed := false
+	if len(updated.UserName) > 0 {
+		original.UserName = updated.UserName
+		changed = true
+	}
+
+	if len(updated.FirstName) > 0 {
+		original.FirstName = updated.FirstName
+		changed = true
+	}
+
+	if len(updated.LastName) > 0 {
+		original.LastName = updated.LastName
+		changed = true
+	}
+
+	if len(updated.Gender) > 0 {
+		original.Gender = updated.Gender
+		changed = true
+	}
+
+	if updated.Permissions != nil {
+		original.Permissions = updated.Permissions
+		changed = true
+	}
+
+	return changed
+}
+
 func getUserPropertyValue(key string, user User) string {
 	if strings.EqualFold(key, "id") {
 		return strconv.FormatInt(user.Id, 10)

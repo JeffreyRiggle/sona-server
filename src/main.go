@@ -211,8 +211,15 @@ func setupRuntimeUsermanager(config Config) {
 }
 
 func setupSQLUsermanager(config Config, db *sql.DB) {
-	userManager = MySQLUserManager{db, config.User.DefaultPermissions}
-	// TODO better handling of add user here
-	_, res := userManager.AddUser(&admin)
-	userManager.SetPermissions(res.Id, adminPermissions)
+	usrMySQLManager := MySQLUserManager{db, config.User.DefaultPermissions}
+	usrMySQLManager.Initialize()
+
+	userManager = usrMySQLManager
+	_, found := userManager.GetUser(0)
+
+	if !found {
+		log.Println("No administrator found creating admin account")
+		_, res := userManager.AddUser(&admin)
+		userManager.SetPermissions(res.Id, adminPermissions)
+	}
 }

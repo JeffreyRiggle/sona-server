@@ -215,7 +215,7 @@ func setupSQLUsermanager(config Config, db *sql.DB) {
 	usrMySQLManager.Initialize()
 
 	userManager = usrMySQLManager
-	_, found := userManager.GetUser(0)
+	_, found := userManager.GetUser(1)
 
 	if !found {
 		log.Println("No administrator found creating admin account")

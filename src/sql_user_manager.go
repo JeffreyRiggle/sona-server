@@ -13,7 +13,7 @@ type MySQLUserManager struct {
 
 func (manager MySQLUserManager) Initialize() {
 	if !manager.hasTable("Users") {
-		logManager.LogPrintln("Unable to find incident table creating now")
+		logManager.LogPrintln("Unable to find user table creating now")
 		manager.createUserTable()
 	}
 }
@@ -97,7 +97,9 @@ func (manager MySQLUserManager) AddUser(user *AddUser) (bool, User) {
 }
 
 func (manager MySQLUserManager) GetUser(userId int64) (User, bool) {
-	retVal := User{}
+	retVal := User{
+		Id: -1,
+	}
 	var (
 		id           int64
 		username     string
@@ -124,19 +126,21 @@ func (manager MySQLUserManager) GetUser(userId int64) (User, bool) {
 			logManager.LogPrintln(err)
 		}
 
-		retVal = User{
-			Id:           id,
-			UserName:     username,
-			FirstName:    firstname,
-			LastName:     lastname,
-			EmailAddress: emailaddress,
-			Gender:       gender,
-			Permissions:  strings.Split(permissions, ","),
+		if retVal.Id == -1 {
+			retVal = User{
+				Id:           id,
+				UserName:     username,
+				FirstName:    firstname,
+				LastName:     lastname,
+				EmailAddress: emailaddress,
+				Gender:       gender,
+				Permissions:  strings.Split(permissions, ","),
+			}
 		}
 	}
 
 	logManager.LogPrintf("got user: %v\n", retVal)
-	return retVal, true
+	return retVal, retVal.Id != -1
 }
 
 func (manager MySQLUserManager) UpdateUser(userId int64, user *User) bool {
@@ -199,7 +203,7 @@ func (manager MySQLUserManager) SetUserPassword(user User, password string) {
 }
 
 func (manager MySQLUserManager) SetPermissions(userId int64, permissions []string) bool {
-	usr, pass := manager.GetUser(userId)
+	_, pass := manager.GetUser(userId)
 
 	if !pass {
 		return false
@@ -211,7 +215,7 @@ func (manager MySQLUserManager) SetPermissions(userId int64, permissions []strin
 		return false
 	}
 
-	_, err = stmt.Exec(strings.Join(usr.Permissions, ","), userId)
+	_, err = stmt.Exec(strings.Join(permissions, ","), userId)
 
 	if err != nil {
 		logManager.LogPrintf("Error occurred when executing update user permissions %v", err)

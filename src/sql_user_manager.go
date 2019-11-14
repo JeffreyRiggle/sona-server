@@ -373,10 +373,23 @@ func (manager MySQLUserManager) ValidateUser(token string) bool {
 
 	expired := TokenExpired(token)
 	logManager.LogPrintf("Token expired %v", expired)
-
-	// TODO prune tokens
+	go manager.pruneTokens(userId, tokens)
 
 	return !expired
+}
+
+func (manager MySQLUserManager) pruneTokens(userId int64, tokens []string) {
+	prunedTokens := make([]string, 0)
+
+	for _, v := range tokens {
+		if !TokenExpired(v) {
+			prunedTokens = append(prunedTokens, v)
+		}
+	}
+
+	if len(tokens) != len(prunedTokens) {
+		manager.setTokens(userId, strings.Join(prunedTokens, ","))
+	}
 }
 
 // CleanUp will do any required cleanup actions on the user manager.

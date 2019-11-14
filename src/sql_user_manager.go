@@ -16,6 +16,11 @@ func (manager MySQLUserManager) Initialize() {
 		logManager.LogPrintln("Unable to find user table creating now")
 		manager.createUserTable()
 	}
+
+	if !manager.hasTable("Tokens") {
+		logManager.LogPrintln("Unable to find tokens table creating now")
+		manager.createTokenTable()
+	}
 }
 
 func (manager MySQLUserManager) hasTable(tableName string) bool {
@@ -43,7 +48,7 @@ func (manager MySQLUserManager) createUserTable() {
 		"FirstName VARCHAR(255), " +
 		"Lastname VARCHAR(255), " +
 		"Gender VARCHAR(255), " +
-		"Password VARCHAR(1048), " +
+		"Password BLOB(65535), " + // TODO figure this out.
 		"Permissions VARCHAR(1048))")
 
 	if err != nil {
@@ -55,12 +60,29 @@ func (manager MySQLUserManager) createUserTable() {
 		panic(err)
 	}
 
-	logManager.LogPrintln("Created Incident Table: %v\n", res)
+	logManager.LogPrintln("Created User Table: %v\n", res)
+}
+
+func (manager MySQLUserManager) createTokenTable() {
+	stmt, err := manager.Connection.Prepare("CREATE TABLE Tokens (" +
+		"Id INT UNSIGNED NOT NULL PRIMARY KEY, " +
+		"Tokens VARCHAR(1048))")
+
+	if err != nil {
+		panic(err)
+	}
+
+	res, err := stmt.Exec()
+	if err != nil {
+		panic(err)
+	}
+
+	logManager.LogPrintln("Created Token Table: %v\n", res)
 }
 
 func (manager MySQLUserManager) AddUser(user *AddUser) (bool, User) {
-	stmt, err := manager.Connection.Prepare("INSERT INTO Users (EmailAddress, UserName, FirstName, LastName, Gender, Password, Permissions) " +
-		"VALUES (?, ?, ?, ?, ?, ?, ?);")
+	stmt, err := manager.Connection.Prepare("INSERT INTO Users (EmailAddress, UserName, FirstName, LastName, Gender, Permissions) " +
+		"VALUES (?, ?, ?, ?, ?, ?);")
 	if err != nil {
 		logManager.LogPrintf("Error occurred when preparing add %v", err)
 		return false, User{}
@@ -68,7 +90,7 @@ func (manager MySQLUserManager) AddUser(user *AddUser) (bool, User) {
 
 	permissions := make([]string, len(manager.DefaultPermissions))
 
-	res, err := stmt.Exec(user.EmailAddress, user.UserName, user.FirstName, user.LastName, user.Gender, user.Password, strings.Join(permissions, ","))
+	res, err := stmt.Exec(user.EmailAddress, user.UserName, user.FirstName, user.LastName, user.Gender, strings.Join(permissions, ","))
 
 	if err != nil {
 		logManager.LogPrintf("Error occurred when executing add %v", err)
@@ -91,6 +113,8 @@ func (manager MySQLUserManager) AddUser(user *AddUser) (bool, User) {
 		Gender:       user.Gender,
 		Permissions:  permissions,
 	}
+
+	manager.SetUserPassword(usr, createPasswordHash(usr, user.Password))
 
 	logManager.LogPrintf("Created new user: %v\n", usr)
 	return true, usr
@@ -226,13 +250,133 @@ func (manager MySQLUserManager) SetPermissions(userId int64, permissions []strin
 }
 
 func (manager MySQLUserManager) AuthenticateUser(user User, password string) (bool, TokenResponse) {
-	// TODO
-	return true, TokenResponse{}
+	var storedPassword string
+
+	rows, err := manager.Connection.Query("SELECT Password "+
+		"FROM Users "+
+		"WHERE Id = ?", user.Id)
+
+	if err != nil {
+		logManager.LogPrintf("Error occurred when preparing get password %v\n", err)
+		return false, TokenResponse{}
+	}
+
+	defer rows.Close()
+	for rows.Next() {
+		err := rows.Scan(&storedPassword)
+		if err != nil {
+			logManager.LogPrintln(err)
+		}
+	}
+
+	auth := createPasswordHash(user, password) == storedPassword
+
+	if !auth {
+		return auth, TokenResponse{}
+	}
+
+	token := GenerateToken(user)
+	tokens, found := manager.reconcileUserTokens(user.Id, token.Token)
+
+	if found {
+		manager.updateTokens(user.Id, tokens)
+	} else {
+		manager.setTokens(user.Id, tokens)
+	}
+
+	return auth, token
+}
+
+func (manager MySQLUserManager) reconcileUserTokens(userId int64, newToken string) (string, bool) {
+	tokens, found := manager.getTokens(userId)
+	reconciledTokens := make([]string, 0)
+	reconciledTokens = append(reconciledTokens, newToken)
+
+	for _, token := range tokens {
+		if !TokenExpired(token) {
+			reconciledTokens = append(reconciledTokens, token)
+		}
+	}
+
+	return strings.Join(reconciledTokens, ","), found
+}
+
+func (manager MySQLUserManager) getTokens(userId int64) ([]string, bool) {
+	var (
+		id          int64
+		storedToken string
+	)
+
+	rows, err := manager.Connection.Query("SELECT Id, Tokens "+
+		"FROM Tokens "+
+		"WHERE Id = ?", userId)
+
+	if err != nil {
+		logManager.LogPrintf("Error occurred when preparing get tokens %v\n", err)
+		return make([]string, 0), false
+	}
+
+	defer rows.Close()
+	for rows.Next() {
+		err := rows.Scan(&id, &storedToken)
+		if err != nil {
+			logManager.LogPrintln(err)
+		}
+	}
+
+	return strings.Split(storedToken, ","), id != 0
+}
+
+func (manager MySQLUserManager) updateTokens(userId int64, tokens string) {
+	stmt, err := manager.Connection.Prepare("UPDATE Tokens SET Tokens = ? WHERE Id = ?")
+	if err != nil {
+		logManager.LogPrintf("Error occurred when preparing update user tokens %v", err)
+		return
+	}
+
+	_, err = stmt.Exec(tokens, userId)
+
+	if err != nil {
+		logManager.LogPrintf("Error occurred when executing update user tokens %v", err)
+	}
+}
+
+func (manager MySQLUserManager) setTokens(userId int64, tokens string) {
+	stmt, err := manager.Connection.Prepare("INSERT INTO Tokens (Id, Tokens) VALUES (?, ?)")
+	if err != nil {
+		logManager.LogPrintf("Error occurred when preparing add user tokens %v", err)
+		return
+	}
+
+	_, err = stmt.Exec(userId, tokens)
+
+	if err != nil {
+		logManager.LogPrintf("Error occurred when executing add user tokens %v", err)
+	}
 }
 
 func (manager MySQLUserManager) ValidateUser(token string) bool {
-	// TODO
-	return true
+	userId := GetTokenUser(token)
+	tokens, _ := manager.getTokens(userId)
+	found := -1
+
+	for i, v := range tokens {
+		if v == token {
+			found = i
+		}
+	}
+
+	if found == -1 {
+		logManager.LogPrintf("Token not found for user %v", userId)
+		return false
+	}
+
+	expired := TokenExpired(token)
+	logManager.LogPrintf("Token expired %v", expired)
+
+	// TODO prune tokens
+
+	return !expired
 }
 
 // CleanUp will do any required cleanup actions on the user manager.

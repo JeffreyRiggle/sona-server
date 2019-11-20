@@ -135,7 +135,7 @@ func setupManagers(config Config) {
 	}
 
 	if config.ManagerType == 1 {
-		setupDynamoDBIncidentManager(config)
+		setupDynamoDBManagers(config)
 		return
 	}
 
@@ -160,7 +160,7 @@ func setupManagers(config Config) {
 	panic(fmt.Sprintf("Invalid manager config %v", config.ManagerType))
 }
 
-func setupDynamoDBIncidentManager(config Config) {
+func setupDynamoDBManagers(config Config) {
 	if len(config.DynamoConfig.Region) <= 0 {
 		panic("No configured region")
 	}
@@ -183,9 +183,21 @@ func setupDynamoDBIncidentManager(config Config) {
 		attach = "IncidentAttachments"
 	}
 
+	var usr string
+	if len(config.DynamoConfig.UserTableOverride) > 0 {
+		usr = config.DynamoConfig.UserTableOverride
+		log.Printf("Found User table override %v\n", usr)
+	} else {
+		usr = "Users"
+	}
+
 	dbManager := DynamoDBIncidentManager{&config.DynamoConfig.Region, &incs, &attach}
 	dbManager.Initialize()
 	incidentManager = &dbManager
+
+	udbManager := DynamoDBUserManager{&config.DynamoConfig.Region, &usr, config.User.DefaultPermissions}
+	udbManager.Initialize()
+	userManager = &udbManager
 }
 
 func setupMySQLIncidentManager(config Config, db *sql.DB) {

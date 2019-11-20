@@ -1,5 +1,5 @@
 {
-    "managertype": 2,
+    "managertype": 1,
     "filemanagertype": 0,
     "dynamodb": {
         "region": "us-east-1"

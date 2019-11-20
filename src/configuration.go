@@ -71,6 +71,7 @@ type DynamoDBConfig struct {
 	Region                  string `json:"region"`
 	IncidentTableOverride   string `json:"incidenttableoverride"`
 	AttachmentTableOverride string `json:"attachmenttableoverride"`
+	UserTableOverride       string `json:"usertableoverride"`
 }
 
 // LocalFileManagerConfig controls the configuration of the local file manager if it is in use.

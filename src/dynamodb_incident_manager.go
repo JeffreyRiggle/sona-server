@@ -27,7 +27,7 @@ type DynamoDBIncidentManager struct {
 // This will make sure we are able to connect to the region.
 // It will also create the configured tables in that region if they do not already exist.
 func (manager DynamoDBIncidentManager) Initialize() {
-	logManager.LogPrintln("Initializing DynamoDB manager")
+	logManager.LogPrintln("Initializing DynamoDB incident manager")
 
 	svc := CreateService(*manager.Region)
 
@@ -719,7 +719,8 @@ func (manager DynamoDBIncidentManager) CleanUp() {
 // CreateService will create a new dynamodb.DynamoDB instance.
 func CreateService(region string) *dynamodb.DynamoDB {
 	sess := session.Must(session.NewSession(&aws.Config{
-		Region: aws.String(region),
+		Region:   aws.String(region),
+		Endpoint: aws.String("http://localhost:8000"),
 	}))
 
 	return dynamodb.New(sess)

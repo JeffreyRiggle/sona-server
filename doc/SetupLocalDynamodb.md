@@ -7,7 +7,7 @@ First you will need to install aws's dynamodb image for docker `sudo docker pull
 Next you will need to actually run the docker image `sudo docker run -p 8000:8000 amazon/dynamodb-local`
 
 ## Configure the dynamodb docker image with an access key
-Navigate to https://localhost:8000/shell. Once on this page press the gear icon and set the access key. You can either use your own instance of AWS to generate a key using IAM or you can use the following Access Key `AKIAIOSFODNN7EXAMPLE` (note this is not very safe to do).
+Navigate to http://localhost:8000/shell. Once on this page press the gear icon and set the access key. You can either use your own instance of AWS to generate a key using IAM or you can use the following Access Key `AKIAIOSFODNN7EXAMPLE` (note this is not very safe to do).
 
 ## Setting up Sona
 In order to run against a local dynamodb instance you will need to do a couple things to the sona server. First you will need to create an aws secret file on the machine sona is running on. To do this create a file at the location `~/.aws/credentials`. In this file you will need to store your credentails this should look something like this.

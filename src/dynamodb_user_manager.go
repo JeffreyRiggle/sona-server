@@ -15,6 +15,7 @@ import (
 // The UsersTable indicates the name of the table to use for users.
 type DynamoDBUserManager struct {
 	Region             *string
+	Endpoint           *string
 	UsersTable         *string
 	DefaultPermissions []string
 }
@@ -25,7 +26,7 @@ type DynamoDBUserManager struct {
 func (manager DynamoDBUserManager) Initialize() {
 	logManager.LogPrintln("Initializing DynamoDB user manager")
 
-	svc := CreateService(*manager.Region)
+	svc := CreateService(*manager.Region, *manager.Endpoint)
 
 	userInput := &dynamodb.DescribeTableInput{
 		TableName: aws.String(*manager.UsersTable),
@@ -80,7 +81,7 @@ func (manager DynamoDBUserManager) createUsersTable() {
 		TableName: aws.String(*manager.UsersTable),
 	}
 
-	svc := CreateService(*manager.Region)
+	svc := CreateService(*manager.Region, *manager.Endpoint)
 
 	result, err := svc.CreateTable(input)
 
@@ -133,7 +134,7 @@ func (manager DynamoDBUserManager) AddUser(user *AddUser) (bool, User) {
 
 	logManager.LogPrintln(av)
 
-	svc := CreateService(*manager.Region)
+	svc := CreateService(*manager.Region, *manager.Endpoint)
 
 	_, err2 := svc.PutItem(&dynamodb.PutItemInput{
 		TableName: aws.String(*manager.UsersTable),
@@ -188,7 +189,7 @@ func (manager DynamoDBUserManager) getNextId() (int64, bool) {
 func (manager DynamoDBUserManager) getAllUsers() ([]User, error) {
 	var users []User
 
-	svc := CreateService(*manager.Region)
+	svc := CreateService(*manager.Region, *manager.Endpoint)
 
 	err := svc.ScanPages(&dynamodb.ScanInput{
 		TableName: aws.String(*manager.UsersTable),
@@ -234,7 +235,7 @@ func (manager DynamoDBUserManager) UpdateUser(userId int64, user *User) bool {
 
 func (manager DynamoDBUserManager) getUserFromDataBase(userId int64) (*User, bool) {
 	// TODO fix
-	svc := CreateService(*manager.Region)
+	svc := CreateService(*manager.Region, *manager.Endpoint)
 
 	input := &dynamodb.GetItemInput{
 		Key: map[string]*dynamodb.AttributeValue{
@@ -339,7 +340,7 @@ func (manager DynamoDBUserManager) getUserFromDataBase(userId int64) (*User, boo
 
 func (manager DynamoDBUserManager) updateItemInDataBase(user User) bool {
 	// TODO FIX
-	svc := CreateService(*manager.Region)
+	svc := CreateService(*manager.Region, *manager.Endpoint)
 
 	input := &dynamodb.UpdateItemInput{
 		ExpressionAttributeNames: map[string]*string{
@@ -412,7 +413,7 @@ func (manager DynamoDBUserManager) updateItemInDataBase(user User) bool {
 
 func (manager DynamoDBUserManager) RemoveUser(userId int64) bool {
 	// TODO figure out
-	svc := CreateService(*manager.Region)
+	svc := CreateService(*manager.Region, *manager.Endpoint)
 	input := &dynamodb.DeleteItemInput{
 		Key: map[string]*dynamodb.AttributeValue{
 			"id": {

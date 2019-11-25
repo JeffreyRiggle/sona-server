@@ -191,11 +191,20 @@ func setupDynamoDBManagers(config Config) {
 		usr = "Users"
 	}
 
-	dbManager := DynamoDBIncidentManager{&config.DynamoConfig.Region, &incs, &attach}
+	dbManager := DynamoDBIncidentManager{
+		&config.DynamoConfig.Region,
+		&config.DynamoConfig.Endpoint,
+		&incs, &attach,
+	}
 	dbManager.Initialize()
 	incidentManager = &dbManager
 
-	udbManager := DynamoDBUserManager{&config.DynamoConfig.Region, &usr, config.User.DefaultPermissions}
+	udbManager := DynamoDBUserManager{
+		&config.DynamoConfig.Region,
+		&config.DynamoConfig.Endpoint,
+		&usr,
+		config.User.DefaultPermissions,
+	}
 	udbManager.Initialize()
 	userManager = &udbManager
 }

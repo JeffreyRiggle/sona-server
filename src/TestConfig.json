@@ -2,7 +2,8 @@
     "managertype": 1,
     "filemanagertype": 0,
     "dynamodb": {
-        "region": "us-east-1"
+        "region": "us-east-1",
+        "endpoint": "http://localhost:8000"
     },
     "mysql": {
         "username": "root",

@@ -69,6 +69,7 @@ type WebHooks struct {
 // The AttachmentTableOverride will override the default attachment table name and use that instead.
 type DynamoDBConfig struct {
 	Region                  string `json:"region"`
+	Endpoint                string `json:"endpoint"`
 	IncidentTableOverride   string `json:"incidenttableoverride"`
 	AttachmentTableOverride string `json:"attachmenttableoverride"`
 	UserTableOverride       string `json:"usertableoverride"`

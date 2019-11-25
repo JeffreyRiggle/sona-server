@@ -19,6 +19,7 @@ import (
 // The AttachmentTable indicates the name of the table to use for attachments.
 type DynamoDBIncidentManager struct {
 	Region          *string
+	Endpoint        *string
 	IncidentTable   *string
 	AttachmentTable *string
 }
@@ -29,7 +30,7 @@ type DynamoDBIncidentManager struct {
 func (manager DynamoDBIncidentManager) Initialize() {
 	logManager.LogPrintln("Initializing DynamoDB incident manager")
 
-	svc := CreateService(*manager.Region)
+	svc := CreateService(*manager.Region, *manager.Endpoint)
 
 	incidentInput := &dynamodb.DescribeTableInput{
 		TableName: aws.String(*manager.IncidentTable),
@@ -107,7 +108,7 @@ func (manager DynamoDBIncidentManager) createIncidentTable() {
 		TableName: aws.String(*manager.IncidentTable),
 	}
 
-	svc := CreateService(*manager.Region)
+	svc := CreateService(*manager.Region, *manager.Endpoint)
 
 	result, err := svc.CreateTable(input)
 
@@ -162,7 +163,7 @@ func (manager DynamoDBIncidentManager) createAttachmentTable() {
 		TableName: aws.String(*manager.AttachmentTable),
 	}
 
-	svc := CreateService(*manager.Region)
+	svc := CreateService(*manager.Region, *manager.Endpoint)
 
 	result, err := svc.CreateTable(input)
 
@@ -208,7 +209,7 @@ func (manager DynamoDBIncidentManager) AddIncident(incident *Incident) bool {
 
 	logManager.LogPrintln(av)
 
-	svc := CreateService(*manager.Region)
+	svc := CreateService(*manager.Region, *manager.Endpoint)
 
 	_, err2 := svc.PutItem(&dynamodb.PutItemInput{
 		TableName: aws.String(*manager.IncidentTable),
@@ -261,7 +262,7 @@ func (manager DynamoDBIncidentManager) getNextId() (int64, bool) {
 func (manager DynamoDBIncidentManager) getAllIncidents() ([]Incident, error) {
 	var incidents []Incident
 
-	svc := CreateService(*manager.Region)
+	svc := CreateService(*manager.Region, *manager.Endpoint)
 
 	err := svc.ScanPages(&dynamodb.ScanInput{
 		TableName: aws.String(*manager.IncidentTable),
@@ -285,7 +286,7 @@ func (manager DynamoDBIncidentManager) getAllIncidents() ([]Incident, error) {
 func (manager DynamoDBIncidentManager) getFilteredIncidents(filter *FilterRequest) ([]Incident, error) {
 	var incidents []Incident
 
-	svc := CreateService(*manager.Region)
+	svc := CreateService(*manager.Region, *manager.Endpoint)
 
 	queryString, names, values := buildAWSFilterString(filter)
 
@@ -383,7 +384,7 @@ func (manager DynamoDBIncidentManager) UpdateIncident(id int, update IncidentUpd
 }
 
 func (manager DynamoDBIncidentManager) getIncidentFromDataBase(incidentId int) (*Incident, bool) {
-	svc := CreateService(*manager.Region)
+	svc := CreateService(*manager.Region, *manager.Endpoint)
 
 	input := &dynamodb.GetItemInput{
 		Key: map[string]*dynamodb.AttributeValue{
@@ -522,7 +523,7 @@ func (manager DynamoDBIncidentManager) GetIncidents(filter *FilterRequest) ([]In
 }
 
 func (manager DynamoDBIncidentManager) updateItemInDataBase(incident Incident) bool {
-	svc := CreateService(*manager.Region)
+	svc := CreateService(*manager.Region, *manager.Endpoint)
 
 	attMap, err := dynamodbattribute.MarshalMap(incident.Attributes)
 
@@ -607,7 +608,7 @@ func (manager DynamoDBIncidentManager) AddAttachment(incidentId int, attachment 
 
 	logManager.LogPrintln(av)
 
-	svc := CreateService(*manager.Region)
+	svc := CreateService(*manager.Region, *manager.Endpoint)
 
 	_, err2 := svc.PutItem(&dynamodb.PutItemInput{
 		TableName: aws.String(*manager.AttachmentTable),
@@ -628,7 +629,7 @@ func (manager DynamoDBIncidentManager) AddAttachment(incidentId int, attachment 
 func (manager DynamoDBIncidentManager) GetAttachments(incidentId int) ([]Attachment, bool) {
 	var attachments []Attachment
 
-	svc := CreateService(*manager.Region)
+	svc := CreateService(*manager.Region, *manager.Endpoint)
 
 	var resp, err = svc.Query(&dynamodb.QueryInput{
 		TableName: aws.String(*manager.AttachmentTable),
@@ -670,7 +671,7 @@ func (manager DynamoDBIncidentManager) GetAttachments(incidentId int) ([]Attachm
 
 // RemoveAttachment will find and remove an attachment associated with an incident.
 func (manager DynamoDBIncidentManager) RemoveAttachment(incidentId int, fileName string) bool {
-	svc := CreateService(*manager.Region)
+	svc := CreateService(*manager.Region, *manager.Endpoint)
 	input := &dynamodb.DeleteItemInput{
 		Key: map[string]*dynamodb.AttributeValue{
 			"id": {
@@ -717,11 +718,15 @@ func (manager DynamoDBIncidentManager) CleanUp() {
 }
 
 // CreateService will create a new dynamodb.DynamoDB instance.
-func CreateService(region string) *dynamodb.DynamoDB {
-	sess := session.Must(session.NewSession(&aws.Config{
-		Region:   aws.String(region),
-		Endpoint: aws.String("http://localhost:8000"),
-	}))
+func CreateService(region string, endpoint string) *dynamodb.DynamoDB {
+	config := &aws.Config{
+		Region: aws.String(region),
+	}
 
+	if len(endpoint) > 0 {
+		config.Endpoint = aws.String(endpoint)
+	}
+
+	sess := session.Must(session.NewSession(config))
 	return dynamodb.New(sess)
 }

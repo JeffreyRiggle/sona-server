@@ -66,11 +66,11 @@ func (manager DynamoDBUserManager) createUsersTable() {
 		},
 		KeySchema: []*dynamodb.KeySchemaElement{
 			{
-				AttributeName: aws.String("emailAddress"),
+				AttributeName: aws.String("id"),
 				KeyType:       aws.String("HASH"),
 			},
 			{
-				AttributeName: aws.String("id"),
+				AttributeName: aws.String("emailAddress"),
 				KeyType:       aws.String("RANGE"),
 			},
 		},
@@ -237,16 +237,17 @@ func (manager DynamoDBUserManager) getUserFromDataBase(userId int64) (*User, boo
 	// TODO fix
 	svc := CreateService(*manager.Region, *manager.Endpoint)
 
-	input := &dynamodb.GetItemInput{
-		Key: map[string]*dynamodb.AttributeValue{
-			"id": {
+	input := &dynamodb.QueryInput{
+		ExpressionAttributeValues: map[string]*dynamodb.AttributeValue{
+			":v1": {
 				N: aws.String(strconv.FormatInt(userId, 10)),
 			},
 		},
-		TableName: aws.String(*manager.UsersTable),
+		KeyConditionExpression: aws.String("id = :v1"),
+		TableName:              aws.String(*manager.UsersTable),
 	}
 
-	result, err := svc.GetItem(input)
+	result, err := svc.Query(input)
 
 	if err != nil {
 		if aerr, ok := err.(awserr.Error); ok {
@@ -267,7 +268,12 @@ func (manager DynamoDBUserManager) getUserFromDataBase(userId int64) (*User, boo
 	}
 
 	retVal := User{}
-	for k, v := range result.Item {
+
+	if len(result.Items) == 0 {
+		return nil, false
+	}
+
+	for k, v := range result.Items[0] {
 		logManager.LogPrintf("Umarshaling %v", k)
 
 		if k == "emailAddress" {
@@ -331,6 +337,7 @@ func (manager DynamoDBUserManager) getUserFromDataBase(userId int64) (*User, boo
 			if err2 != nil {
 				logManager.LogPrintln(fmt.Sprintf("failed to unmarshal items, %v", err2))
 			}
+
 			retVal.Permissions = umVal
 		}
 	}

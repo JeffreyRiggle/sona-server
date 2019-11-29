@@ -178,12 +178,17 @@ func (manager DynamoDBUserManager) getNextId() (int64, bool) {
 		return 0, true
 	}
 
-	lastItem := users[len(users)-1]
-	retVal := lastItem.Id
+	var lastIndex int64 = 0
 
-	retVal++
-	logManager.LogPrintf("Found last id of %v next id is %v", lastItem.Id, retVal)
-	return retVal, true
+	for _, u := range users {
+		if u.Id > lastIndex {
+			lastIndex = u.Id
+		}
+	}
+
+	lastIndex++
+	logManager.LogPrintf("Next id is %v", lastIndex)
+	return lastIndex, true
 }
 
 func (manager DynamoDBUserManager) getAllUsers() ([]User, error) {
@@ -206,6 +211,8 @@ func (manager DynamoDBUserManager) getAllUsers() ([]User, error) {
 
 		return true
 	})
+
+	logManager.LogPrintf("Found users %v", users)
 
 	return users, err
 }

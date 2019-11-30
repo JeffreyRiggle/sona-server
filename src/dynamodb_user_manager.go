@@ -223,7 +223,6 @@ func (manager DynamoDBUserManager) GetUser(userId int64) (User, bool) {
 	return *usr, pass
 }
 
-// TODO finish
 func (manager DynamoDBUserManager) UpdateUser(userId int64, user *User) bool {
 	logManager.LogPrintln("Got update user request.")
 	usr, pass := manager.getUserFromDataBase(userId)
@@ -237,11 +236,10 @@ func (manager DynamoDBUserManager) UpdateUser(userId int64, user *User) bool {
 		return true
 	}
 
-	return manager.updateItemInDataBase(*usr)
+	return manager.updateUserInDataBase(*usr)
 }
 
 func (manager DynamoDBUserManager) getUserFromDataBase(userId int64) (*User, bool) {
-	// TODO fix
 	svc := CreateService(*manager.Region, *manager.Endpoint)
 
 	input := &dynamodb.QueryInput{
@@ -271,13 +269,13 @@ func (manager DynamoDBUserManager) getUserFromDataBase(userId int64) (*User, boo
 		} else {
 			logManager.LogPrintln(err.Error())
 		}
-		return nil, false
+		return &User{}, false
 	}
 
 	retVal := User{}
 
 	if len(result.Items) == 0 {
-		return nil, false
+		return &User{}, false
 	}
 
 	for k, v := range result.Items[0] {
@@ -352,13 +350,11 @@ func (manager DynamoDBUserManager) getUserFromDataBase(userId int64) (*User, boo
 	return &retVal, true
 }
 
-func (manager DynamoDBUserManager) updateItemInDataBase(user User) bool {
-	// TODO FIX
+func (manager DynamoDBUserManager) updateUserInDataBase(user User) bool {
 	svc := CreateService(*manager.Region, *manager.Endpoint)
 
 	input := &dynamodb.UpdateItemInput{
 		ExpressionAttributeNames: map[string]*string{
-			"#e": aws.String("emailAddress"),
 			"#u": aws.String("userName"),
 			"#f": aws.String("firstName"),
 			"#l": aws.String("lastName"),
@@ -366,9 +362,6 @@ func (manager DynamoDBUserManager) updateItemInDataBase(user User) bool {
 			"#p": aws.String("permissions"),
 		},
 		ExpressionAttributeValues: map[string]*dynamodb.AttributeValue{
-			":e": {
-				S: aws.String(user.EmailAddress),
-			},
 			":u": {
 				S: aws.String(user.UserName),
 			},
@@ -386,8 +379,8 @@ func (manager DynamoDBUserManager) updateItemInDataBase(user User) bool {
 			},
 		},
 		Key: map[string]*dynamodb.AttributeValue{
-			"type": {
-				S: aws.String("Incident"), // TODO figure this out
+			"emailAddress": {
+				S: aws.String(user.EmailAddress),
 			},
 			"id": {
 				N: aws.String(strconv.FormatInt(user.Id, 10)),
@@ -395,7 +388,7 @@ func (manager DynamoDBUserManager) updateItemInDataBase(user User) bool {
 		},
 		ReturnValues:     aws.String("ALL_NEW"),
 		TableName:        aws.String(*manager.UsersTable),
-		UpdateExpression: aws.String("SET #e = :e, #u = :u, #f = :f, #l = :l, #g = :g, #p = :p"),
+		UpdateExpression: aws.String("SET #u = :u, #f = :f, #l = :l, #g = :g, #p = :p"),
 	}
 
 	result, err := svc.UpdateItem(input)
@@ -426,12 +419,20 @@ func (manager DynamoDBUserManager) updateItemInDataBase(user User) bool {
 }
 
 func (manager DynamoDBUserManager) RemoveUser(userId int64) bool {
-	// TODO figure out
+	user, pass := manager.getUserFromDataBase(userId)
+
+	if !pass {
+		return false
+	}
+
 	svc := CreateService(*manager.Region, *manager.Endpoint)
 	input := &dynamodb.DeleteItemInput{
 		Key: map[string]*dynamodb.AttributeValue{
+			"emailAddress": {
+				S: aws.String(user.EmailAddress),
+			},
 			"id": {
-				N: aws.String(strconv.FormatInt(userId, 10)),
+				N: aws.String(strconv.FormatInt(user.Id, 10)),
 			},
 		},
 		TableName: aws.String(*manager.UsersTable),
@@ -461,7 +462,7 @@ func (manager DynamoDBUserManager) RemoveUser(userId int64) bool {
 		return false
 	}
 
-	logManager.LogPrintln("Removed attachment from dynamodb.")
+	logManager.LogPrintln("Removed user from dynamodb.")
 	return true
 }
 

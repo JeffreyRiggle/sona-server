@@ -1,6 +1,7 @@
 package main
 
 import (
+	b64 "encoding/base64"
 	"fmt"
 	"strconv"
 
@@ -146,6 +147,7 @@ func (manager DynamoDBUserManager) AddUser(user *AddUser) (bool, User) {
 		return false, usr
 	}
 
+	logManager.LogPrintf("Created user %v attempting to set password\n", usr)
 	manager.SetUserPassword(usr, createPasswordHash(usr, user.Password))
 
 	return true, usr
@@ -359,7 +361,6 @@ func (manager DynamoDBUserManager) updateUserInDataBase(user User) bool {
 			"#f": aws.String("firstName"),
 			"#l": aws.String("lastName"),
 			"#g": aws.String("gender"),
-			"#p": aws.String("permissions"),
 		},
 		ExpressionAttributeValues: map[string]*dynamodb.AttributeValue{
 			":u": {
@@ -374,9 +375,6 @@ func (manager DynamoDBUserManager) updateUserInDataBase(user User) bool {
 			":g": {
 				S: aws.String(user.Gender),
 			},
-			":p": {
-				SS: aws.StringSlice(user.Permissions),
-			},
 		},
 		Key: map[string]*dynamodb.AttributeValue{
 			"emailAddress": {
@@ -388,7 +386,7 @@ func (manager DynamoDBUserManager) updateUserInDataBase(user User) bool {
 		},
 		ReturnValues:     aws.String("ALL_NEW"),
 		TableName:        aws.String(*manager.UsersTable),
-		UpdateExpression: aws.String("SET #u = :u, #f = :f, #l = :l, #g = :g, #p = :p"),
+		UpdateExpression: aws.String("SET #u = :u, #f = :f, #l = :l, #g = :g"),
 	}
 
 	result, err := svc.UpdateItem(input)
@@ -467,22 +465,386 @@ func (manager DynamoDBUserManager) RemoveUser(userId int64) bool {
 }
 
 func (manager DynamoDBUserManager) SetUserPassword(user User, password string) {
-	// TODO
+	pw := b64.StdEncoding.EncodeToString([]byte(password))
+	logManager.LogPrintf("Setting password for %v\n", user)
+	svc := CreateService(*manager.Region, *manager.Endpoint)
+
+	input := &dynamodb.UpdateItemInput{
+		ExpressionAttributeNames: map[string]*string{
+			"#p": aws.String("password"),
+		},
+		ExpressionAttributeValues: map[string]*dynamodb.AttributeValue{
+			":p": {
+				S: aws.String(pw),
+			},
+		},
+		Key: map[string]*dynamodb.AttributeValue{
+			"emailAddress": {
+				S: aws.String(user.EmailAddress),
+			},
+			"id": {
+				N: aws.String(strconv.FormatInt(user.Id, 10)),
+			},
+		},
+		ReturnValues:     aws.String("ALL_NEW"),
+		TableName:        aws.String(*manager.UsersTable),
+		UpdateExpression: aws.String("SET #p = :p"),
+	}
+
+	result, err := svc.UpdateItem(input)
+	if err != nil {
+		if aerr, ok := err.(awserr.Error); ok {
+			switch aerr.Code() {
+			case dynamodb.ErrCodeConditionalCheckFailedException:
+				logManager.LogPrintln(dynamodb.ErrCodeConditionalCheckFailedException, aerr.Error())
+			case dynamodb.ErrCodeProvisionedThroughputExceededException:
+				logManager.LogPrintln(dynamodb.ErrCodeProvisionedThroughputExceededException, aerr.Error())
+			case dynamodb.ErrCodeResourceNotFoundException:
+				logManager.LogPrintln(dynamodb.ErrCodeResourceNotFoundException, aerr.Error())
+			case dynamodb.ErrCodeItemCollectionSizeLimitExceededException:
+				logManager.LogPrintln(dynamodb.ErrCodeItemCollectionSizeLimitExceededException, aerr.Error())
+			case dynamodb.ErrCodeInternalServerError:
+				logManager.LogPrintln(dynamodb.ErrCodeInternalServerError, aerr.Error())
+			default:
+				logManager.LogPrintln(aerr.Error())
+			}
+		} else {
+			logManager.LogPrintln(err.Error())
+		}
+	}
+
+	logManager.LogPrintln(result)
 }
 
 func (manager DynamoDBUserManager) SetPermissions(userId int64, permissions []string) bool {
-	// TODO
+	user, pass := manager.getUserFromDataBase(userId)
+
+	if !pass {
+		return false
+	}
+
+	svc := CreateService(*manager.Region, *manager.Endpoint)
+
+	input := &dynamodb.UpdateItemInput{
+		ExpressionAttributeNames: map[string]*string{
+			"#p": aws.String("permissions"),
+		},
+		ExpressionAttributeValues: map[string]*dynamodb.AttributeValue{
+			":p": {
+				SS: aws.StringSlice(permissions),
+			},
+		},
+		Key: map[string]*dynamodb.AttributeValue{
+			"emailAddress": {
+				S: aws.String(user.EmailAddress),
+			},
+			"id": {
+				N: aws.String(strconv.FormatInt(user.Id, 10)),
+			},
+		},
+		ReturnValues:     aws.String("ALL_NEW"),
+		TableName:        aws.String(*manager.UsersTable),
+		UpdateExpression: aws.String("SET #p = :p"),
+	}
+
+	result, err := svc.UpdateItem(input)
+	if err != nil {
+		if aerr, ok := err.(awserr.Error); ok {
+			switch aerr.Code() {
+			case dynamodb.ErrCodeConditionalCheckFailedException:
+				logManager.LogPrintln(dynamodb.ErrCodeConditionalCheckFailedException, aerr.Error())
+			case dynamodb.ErrCodeProvisionedThroughputExceededException:
+				logManager.LogPrintln(dynamodb.ErrCodeProvisionedThroughputExceededException, aerr.Error())
+			case dynamodb.ErrCodeResourceNotFoundException:
+				logManager.LogPrintln(dynamodb.ErrCodeResourceNotFoundException, aerr.Error())
+			case dynamodb.ErrCodeItemCollectionSizeLimitExceededException:
+				logManager.LogPrintln(dynamodb.ErrCodeItemCollectionSizeLimitExceededException, aerr.Error())
+			case dynamodb.ErrCodeInternalServerError:
+				logManager.LogPrintln(dynamodb.ErrCodeInternalServerError, aerr.Error())
+			default:
+				logManager.LogPrintln(aerr.Error())
+			}
+		} else {
+			logManager.LogPrintln(err.Error())
+		}
+	}
+
+	logManager.LogPrintln(result)
+	return true
+}
+
+func (manager DynamoDBUserManager) getUserPassword(user User) string {
+	retVal := ""
+	svc := CreateService(*manager.Region, *manager.Endpoint)
+
+	input := &dynamodb.QueryInput{
+		ExpressionAttributeValues: map[string]*dynamodb.AttributeValue{
+			":v1": {
+				N: aws.String(strconv.FormatInt(user.Id, 10)),
+			},
+		},
+		KeyConditionExpression: aws.String("id = :v1"),
+		TableName:              aws.String(*manager.UsersTable),
+	}
+
+	result, err := svc.Query(input)
+
+	if err != nil {
+		if aerr, ok := err.(awserr.Error); ok {
+			switch aerr.Code() {
+			case dynamodb.ErrCodeProvisionedThroughputExceededException:
+				logManager.LogPrintln(dynamodb.ErrCodeProvisionedThroughputExceededException, aerr.Error())
+			case dynamodb.ErrCodeResourceNotFoundException:
+				logManager.LogPrintln(dynamodb.ErrCodeResourceNotFoundException, aerr.Error())
+			case dynamodb.ErrCodeInternalServerError:
+				logManager.LogPrintln(dynamodb.ErrCodeInternalServerError, aerr.Error())
+			default:
+				logManager.LogPrintln(aerr.Error())
+			}
+		} else {
+			logManager.LogPrintln(err.Error())
+		}
+		return retVal
+	}
+
+	if len(result.Items) == 0 {
+		return retVal
+	}
+
+	for k, v := range result.Items[0] {
+		logManager.LogPrintf("Umarshaling %v", k)
+
+		if k == "password" {
+			var umVal string
+			err2 := dynamodbattribute.Unmarshal(v, &umVal)
+
+			if err2 != nil {
+				logManager.LogPrintln(fmt.Sprintf("failed to unmarshal items, %v", err2))
+			}
+			retVal = umVal
+		}
+	}
+
+	return retVal
+}
+
+func (manager DynamoDBUserManager) getUserTokens(userId int64) []string {
+	retVal := make([]string, 0)
+	svc := CreateService(*manager.Region, *manager.Endpoint)
+
+	input := &dynamodb.QueryInput{
+		ExpressionAttributeValues: map[string]*dynamodb.AttributeValue{
+			":v1": {
+				N: aws.String(strconv.FormatInt(userId, 10)),
+			},
+		},
+		KeyConditionExpression: aws.String("id = :v1"),
+		TableName:              aws.String(*manager.UsersTable),
+	}
+
+	result, err := svc.Query(input)
+
+	if err != nil {
+		if aerr, ok := err.(awserr.Error); ok {
+			switch aerr.Code() {
+			case dynamodb.ErrCodeProvisionedThroughputExceededException:
+				logManager.LogPrintln(dynamodb.ErrCodeProvisionedThroughputExceededException, aerr.Error())
+			case dynamodb.ErrCodeResourceNotFoundException:
+				logManager.LogPrintln(dynamodb.ErrCodeResourceNotFoundException, aerr.Error())
+			case dynamodb.ErrCodeInternalServerError:
+				logManager.LogPrintln(dynamodb.ErrCodeInternalServerError, aerr.Error())
+			default:
+				logManager.LogPrintln(aerr.Error())
+			}
+		} else {
+			logManager.LogPrintln(err.Error())
+		}
+		return retVal
+	}
+
+	if len(result.Items) == 0 {
+		return retVal
+	}
+
+	for k, v := range result.Items[0] {
+		logManager.LogPrintf("Umarshaling %v", k)
+
+		if k == "tokens" {
+			var umVal []string
+			err2 := dynamodbattribute.Unmarshal(v, &umVal)
+
+			if err2 != nil {
+				logManager.LogPrintln(fmt.Sprintf("failed to unmarshal items, %v", err2))
+			}
+			retVal = umVal
+		}
+	}
+
+	return retVal
+}
+
+func (manager DynamoDBUserManager) storeToken(user User, token string) bool {
+	tokens := manager.getUserTokens(user.Id)
+	reconciledTokens := make([]string, 0)
+	reconciledTokens = append(reconciledTokens, token)
+
+	for _, t := range tokens {
+		if !TokenExpired(t) {
+			reconciledTokens = append(reconciledTokens, t)
+		}
+	}
+
+	svc := CreateService(*manager.Region, *manager.Endpoint)
+
+	input := &dynamodb.UpdateItemInput{
+		ExpressionAttributeNames: map[string]*string{
+			"#t": aws.String("tokens"),
+		},
+		ExpressionAttributeValues: map[string]*dynamodb.AttributeValue{
+			":t": {
+				SS: aws.StringSlice(reconciledTokens),
+			},
+		},
+		Key: map[string]*dynamodb.AttributeValue{
+			"emailAddress": {
+				S: aws.String(user.EmailAddress),
+			},
+			"id": {
+				N: aws.String(strconv.FormatInt(user.Id, 10)),
+			},
+		},
+		ReturnValues:     aws.String("ALL_NEW"),
+		TableName:        aws.String(*manager.UsersTable),
+		UpdateExpression: aws.String("SET #t = :t"),
+	}
+
+	result, err := svc.UpdateItem(input)
+	if err != nil {
+		if aerr, ok := err.(awserr.Error); ok {
+			switch aerr.Code() {
+			case dynamodb.ErrCodeConditionalCheckFailedException:
+				logManager.LogPrintln(dynamodb.ErrCodeConditionalCheckFailedException, aerr.Error())
+			case dynamodb.ErrCodeProvisionedThroughputExceededException:
+				logManager.LogPrintln(dynamodb.ErrCodeProvisionedThroughputExceededException, aerr.Error())
+			case dynamodb.ErrCodeResourceNotFoundException:
+				logManager.LogPrintln(dynamodb.ErrCodeResourceNotFoundException, aerr.Error())
+			case dynamodb.ErrCodeItemCollectionSizeLimitExceededException:
+				logManager.LogPrintln(dynamodb.ErrCodeItemCollectionSizeLimitExceededException, aerr.Error())
+			case dynamodb.ErrCodeInternalServerError:
+				logManager.LogPrintln(dynamodb.ErrCodeInternalServerError, aerr.Error())
+			default:
+				logManager.LogPrintln(aerr.Error())
+			}
+		} else {
+			logManager.LogPrintln(err.Error())
+		}
+	}
+
+	logManager.LogPrintln(result)
 	return true
 }
 
 func (manager DynamoDBUserManager) AuthenticateUser(user User, password string) (bool, TokenResponse) {
-	// TODO
-	return true, TokenResponse{}
+	formattedPassword := b64.StdEncoding.EncodeToString([]byte(createPasswordHash(user, password)))
+	originalPassword := manager.getUserPassword(user)
+
+	if originalPassword != formattedPassword {
+		return false, TokenResponse{}
+	}
+
+	token := GenerateToken(user)
+	manager.storeToken(user, token.Token)
+
+	return true, token
+}
+
+func (manager DynamoDBUserManager) pruneTokens(userId int64, tokens []string) {
+	logManager.LogPrintf("Attempting to prune user %v tokens", userId)
+	user, pass := manager.GetUser(userId)
+
+	if !pass {
+		return
+	}
+
+	reconciledTokens := make([]string, 0)
+
+	for _, t := range tokens {
+		if !TokenExpired(t) {
+			reconciledTokens = append(reconciledTokens, t)
+		}
+	}
+
+	svc := CreateService(*manager.Region, *manager.Endpoint)
+
+	input := &dynamodb.UpdateItemInput{
+		ExpressionAttributeNames: map[string]*string{
+			"#t": aws.String("tokens"),
+		},
+		ExpressionAttributeValues: map[string]*dynamodb.AttributeValue{
+			":t": {
+				SS: aws.StringSlice(reconciledTokens),
+			},
+		},
+		Key: map[string]*dynamodb.AttributeValue{
+			"emailAddress": {
+				S: aws.String(user.EmailAddress),
+			},
+			"id": {
+				N: aws.String(strconv.FormatInt(user.Id, 10)),
+			},
+		},
+		ReturnValues:     aws.String("ALL_NEW"),
+		TableName:        aws.String(*manager.UsersTable),
+		UpdateExpression: aws.String("SET #t = :t"),
+	}
+
+	result, err := svc.UpdateItem(input)
+	if err != nil {
+		if aerr, ok := err.(awserr.Error); ok {
+			switch aerr.Code() {
+			case dynamodb.ErrCodeConditionalCheckFailedException:
+				logManager.LogPrintln(dynamodb.ErrCodeConditionalCheckFailedException, aerr.Error())
+			case dynamodb.ErrCodeProvisionedThroughputExceededException:
+				logManager.LogPrintln(dynamodb.ErrCodeProvisionedThroughputExceededException, aerr.Error())
+			case dynamodb.ErrCodeResourceNotFoundException:
+				logManager.LogPrintln(dynamodb.ErrCodeResourceNotFoundException, aerr.Error())
+			case dynamodb.ErrCodeItemCollectionSizeLimitExceededException:
+				logManager.LogPrintln(dynamodb.ErrCodeItemCollectionSizeLimitExceededException, aerr.Error())
+			case dynamodb.ErrCodeInternalServerError:
+				logManager.LogPrintln(dynamodb.ErrCodeInternalServerError, aerr.Error())
+			default:
+				logManager.LogPrintln(aerr.Error())
+			}
+		} else {
+			logManager.LogPrintln(err.Error())
+		}
+	}
+
+	logManager.LogPrintln(result)
 }
 
 func (manager DynamoDBUserManager) ValidateUser(token string) bool {
-	// TODO
-	return true
+	userId := GetTokenUser(token)
+	tokens := manager.getUserTokens(userId)
+
+	found := -1
+
+	for i, v := range tokens {
+		if v == token {
+			found = i
+		}
+	}
+
+	if found == -1 {
+		logManager.LogPrintf("Token not found for user %v", userId)
+		return false
+	}
+
+	expired := TokenExpired(token)
+	logManager.LogPrintf("Token expired %v", expired)
+	go manager.pruneTokens(userId, tokens)
+
+	return !expired
 }
 
 // CleanUp will do any required cleanup actions on the incident manager.

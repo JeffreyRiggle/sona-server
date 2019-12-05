@@ -30,4 +30,6 @@ jobs:
         go build -v .
 
     - name: Test
-      run: go test
+      run: |
+        cd ./src
+        go test

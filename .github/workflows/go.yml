@@ -25,11 +25,9 @@ jobs:
         fi
 
     - name: Build
-      run: |
-        cd ./src
-        go build -v .
+      run: go build -v .
+      working-directory: ./src
 
     - name: Test
-      run: |
-        cd ./src
-        go test
+      run: go test
+      working-directory: ./src

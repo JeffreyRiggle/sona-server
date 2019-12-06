@@ -62,7 +62,7 @@ func HandleIncidentUpdate(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if !HasPermission(token, availablePermissions.modifyIncident) {
-		logManager.LogPrintf("Token does not allow for modify incident", token)
+		logManager.LogPrintf("Token %v does not allow for modify incident", token)
 		w.WriteHeader(http.StatusUnauthorized)
 		return
 	}
@@ -139,7 +139,7 @@ func HandleGetAttachments(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if !HasPermission(token, availablePermissions.viewIncident) {
-		logManager.LogPrintf("Token does not allow for view incident", token)
+		logManager.LogPrintf("Token %v does not allow for view incident", token)
 		w.WriteHeader(http.StatusUnauthorized)
 		return
 	}
@@ -186,7 +186,7 @@ func HandleUploadAttachment(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if !HasPermission(token, availablePermissions.modifyIncident) {
-		logManager.LogPrintf("Token does not allow for modify incident", token)
+		logManager.LogPrintf("Token %v does not allow for modify incident", token)
 		w.WriteHeader(http.StatusUnauthorized)
 		return
 	}
@@ -249,7 +249,7 @@ func HandleDownloadAttachment(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if !HasPermission(token, availablePermissions.viewIncident) {
-		logManager.LogPrintf("Token does not allow for view incident", token)
+		logManager.LogPrintf("Token %v does not allow for view incident", token)
 		w.WriteHeader(http.StatusUnauthorized)
 		return
 	}
@@ -293,7 +293,7 @@ func HandleRemoveAttachment(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if !HasPermission(token, availablePermissions.modifyIncident) {
-		logManager.LogPrintf("Token does not allow for modify incident", token)
+		logManager.LogPrintf("Token %v does not allow for modify incident", token)
 		w.WriteHeader(http.StatusUnauthorized)
 		return
 	}
@@ -368,7 +368,7 @@ func HandleGetIncident(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if !HasPermission(token, availablePermissions.viewIncident) {
-		logManager.LogPrintf("Token does not allow for view incident", token)
+		logManager.LogPrintf("Token %v does not allow for view incident", token)
 		w.WriteHeader(http.StatusUnauthorized)
 		return
 	}
@@ -412,7 +412,7 @@ func HandleGetIncidents(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if !HasPermission(token, availablePermissions.viewIncident) {
-		logManager.LogPrintf("Token does not allow for view incident", token)
+		logManager.LogPrintf("Token %v does not allow for view incident", token)
 		w.WriteHeader(http.StatusUnauthorized)
 		return
 	}

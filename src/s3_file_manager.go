@@ -131,7 +131,7 @@ func (manager S3FileManager) DeleteFile(incident string, fileName string) bool {
 		if aerr, ok := err.(awserr.Error); ok {
 			logManager.LogPrintf("Error deleting object in s3 %v\n", aerr.Error())
 		} else {
-			logManager.LogPrintf("Error deleting object in s3 %v\n", err.Error)
+			logManager.LogPrintf("Error deleting object in s3 %v\n", err.Error())
 		}
 
 		return false

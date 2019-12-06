@@ -60,7 +60,7 @@ func (manager MySQLUserManager) createUserTable() {
 		panic(err)
 	}
 
-	logManager.LogPrintln("Created User Table: %v\n", res)
+	logManager.LogPrintf("Created User Table: %v\n", res)
 }
 
 func (manager MySQLUserManager) createTokenTable() {
@@ -77,7 +77,7 @@ func (manager MySQLUserManager) createTokenTable() {
 		panic(err)
 	}
 
-	logManager.LogPrintln("Created Token Table: %v\n", res)
+	logManager.LogPrintf("Created Token Table: %v\n", res)
 }
 
 func (manager MySQLUserManager) AddUser(user *AddUser) (bool, User) {

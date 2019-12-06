@@ -61,7 +61,7 @@ func (manager MySQLManager) createIncidentTable() {
 		panic(err)
 	}
 
-	logManager.LogPrintln("Created Incident Table: %v\n", res)
+	logManager.LogPrintf("Created Incident Table: %v\n", res)
 }
 
 func (manager MySQLManager) createAttributeTable() {

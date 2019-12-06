@@ -82,7 +82,7 @@ func HandleUpdateUser(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if !HasPermission(token, availablePermissions.modifyUser) && GetTokenUser(token) != userId {
-		logManager.LogPrintf("Token does not allow for modify user", token)
+		logManager.LogPrintf("Token %v does not allow for modify user", token)
 		w.WriteHeader(http.StatusUnauthorized)
 		return
 	}
@@ -131,7 +131,7 @@ func HandleSetPermissions(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if !HasPermission(token, availablePermissions.master) {
-		logManager.LogPrintf("Token does not allow for modify user", token)
+		logManager.LogPrintf("Token %v does not allow for modify user", token)
 		w.WriteHeader(http.StatusUnauthorized)
 		return
 	}
@@ -187,7 +187,7 @@ func HandleGetUser(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if !HasPermission(token, availablePermissions.viewUser) && GetTokenUser(token) != userId {
-		logManager.LogPrintf("Token does not allow for view user", token)
+		logManager.LogPrintf("Token %v does not allow for view user", token)
 		w.WriteHeader(http.StatusUnauthorized)
 		return
 	}
@@ -220,7 +220,7 @@ func HandleDeleteUser(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if !HasPermission(token, availablePermissions.deleteUser) {
-		logManager.LogPrintf("Token does not allow for modify user", token)
+		logManager.LogPrintf("Token %v does not allow for modify user", token)
 		w.WriteHeader(http.StatusUnauthorized)
 		return
 	}
@@ -265,7 +265,7 @@ func HandleChangePassword(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if !HasPermission(token, availablePermissions.master) && GetTokenUser(token) != userId {
-		logManager.LogPrintf("Token does not allow for modify user", token)
+		logManager.LogPrintf("Token %v does not allow for modify user", token)
 		w.WriteHeader(http.StatusUnauthorized)
 		return
 	}

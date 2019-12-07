@@ -61,7 +61,7 @@ func (manager MySQLManager) createIncidentTable() {
 		panic(err)
 	}
 
-	logManager.LogPrintln("Created Incident Table: %v\n", res)
+	logManager.LogPrintf("Created Incident Table: %v\n", res)
 }
 
 func (manager MySQLManager) createAttributeTable() {
@@ -107,7 +107,7 @@ func (manager MySQLManager) createAttachmentTable() {
 }
 
 func (manager MySQLManager) AddIncident(incident *Incident) bool {
-	stmt, err := manager.Connection.Prepare("INSERT INTO incidents (Type, Description, Reporter, State) " +
+	stmt, err := manager.Connection.Prepare("INSERT INTO Incidents (Type, Description, Reporter, State) " +
 		"VALUES (?, ?, ?, ?);")
 	if err != nil {
 		logManager.LogPrintf("Error occurred when preparing add %v", err)
@@ -146,7 +146,7 @@ func (manager MySQLManager) GetIncident(incidentId int) (Incident, bool) {
 	)
 
 	rows, err := manager.Connection.Query("SELECT Id, Type, Description, Reporter, State, AttributeName, AttributeValue "+
-		"FROM incidents LEFT JOIN incidentattributes "+
+		"FROM Incidents LEFT JOIN IncidentAttributes "+
 		"ON IncidentId = Id "+
 		"WHERE Id = ?", incidentId)
 
@@ -229,7 +229,7 @@ func (manager MySQLManager) GetIncidents(filter *FilterRequest) ([]Incident, boo
 func (manager MySQLManager) queryIncidentsWithFilter(filter *FilterRequest) (*sql.Rows, error) {
 	if filter == nil {
 		return manager.Connection.Query("SELECT Id, Type, Description, Reporter, State, AttributeName, AttributeValue " +
-			"FROM incidents LEFT JOIN incidentattributes " +
+			"FROM Incidents LEFT JOIN IncidentAttributes " +
 			"ON IncidentId = Id " +
 			"ORDER BY Id")
 	}
@@ -256,8 +256,8 @@ func (manager MySQLManager) queryIncidentsWithFilter(filter *FilterRequest) (*sq
 	logManager.LogPrintf("Attempting to query with request %v\n", buffer.String())
 
 	return manager.Connection.Query("SELECT Id, Type, Description, Reporter, State, AttributeName, AttributeValue "+
-		"FROM incidents "+
-		"LEFT JOIN incidentattributes "+
+		"FROM Incidents "+
+		"LEFT JOIN IncidentAttributes "+
 		"ON IncidentId = Id "+
 		buffer.String()+
 		"ORDER BY Id", args...)
@@ -292,7 +292,7 @@ func (manager MySQLManager) UpdateIncident(id int, incident IncidentUpdate) bool
 		return true
 	}
 
-	stmt, err := manager.Connection.Prepare("UPDATE incidents SET State = ? , Descrption = ?, Reporter = ? WHERE Id = ?")
+	stmt, err := manager.Connection.Prepare("UPDATE Incidents SET State = ? , Descrption = ?, Reporter = ? WHERE Id = ?")
 	if err != nil {
 		logManager.LogPrintf("Error occurred when preparing update attribute %v", err)
 		return false
@@ -339,7 +339,7 @@ func (manager MySQLManager) updateAttributes(original Incident, update IncidentU
 }
 
 func (manager MySQLManager) updateAttribute(value string, name string, id int64) bool {
-	stmt, err := manager.Connection.Prepare("UPDATE incidentattributes SET AttributeValue = ? WHERE IncidentId = ? AND AttributeName = ?")
+	stmt, err := manager.Connection.Prepare("UPDATE IncidentAttributes SET AttributeValue = ? WHERE IncidentId = ? AND AttributeName = ?")
 	if err != nil {
 		logManager.LogPrintf("Error occurred when preparing update attribute %v", err)
 		return false
@@ -356,7 +356,7 @@ func (manager MySQLManager) updateAttribute(value string, name string, id int64)
 }
 
 func (manager MySQLManager) addAttribute(value string, name string, id int64) bool {
-	stmt, err := manager.Connection.Prepare("INSERT INTO incidentattributes (IncidentId, AttributeName, AttributeValue) " +
+	stmt, err := manager.Connection.Prepare("INSERT INTO IncidentAttributes (IncidentId, AttributeName, AttributeValue) " +
 		"VALUES (?, ?, ?);")
 	if err != nil {
 		logManager.LogPrintf("Error occurred when preparing add attribute %v", err)
@@ -374,7 +374,7 @@ func (manager MySQLManager) addAttribute(value string, name string, id int64) bo
 }
 
 func (manager MySQLManager) removeAttribute(name string, id int64) bool {
-	stmt, err := manager.Connection.Prepare("DELETE FROM incidentattributes WHERE IncidentId = ? AND AttributeName = ?")
+	stmt, err := manager.Connection.Prepare("DELETE FROM IncidentAttributes WHERE IncidentId = ? AND AttributeName = ?")
 	if err != nil {
 		logManager.LogPrintf("Error occurred when preparing add attribute %v", err)
 		return false
@@ -391,7 +391,7 @@ func (manager MySQLManager) removeAttribute(name string, id int64) bool {
 }
 
 func (manager MySQLManager) AddAttachment(incidentId int, attachment Attachment) bool {
-	stmt, err := manager.Connection.Prepare("INSERT INTO incidentattachments (IncidentId, FileName, TimeStampString) " +
+	stmt, err := manager.Connection.Prepare("INSERT INTO IncidentAttachments (IncidentId, FileName, TimeStampString) " +
 		"VALUES (?, ?, ?);")
 
 	if err != nil {
@@ -437,7 +437,7 @@ func (manager MySQLManager) GetAttachments(incidentId int) ([]Attachment, bool) 
 }
 
 func (manager MySQLManager) RemoveAttachment(incidentId int, fileName string) bool {
-	stmt, err := manager.Connection.Prepare("DELETE FROM incidentattachments WHERE IncidentId = ? AND FileName = ?")
+	stmt, err := manager.Connection.Prepare("DELETE FROM IncidentAttachments WHERE IncidentId = ? AND FileName = ?")
 	if err != nil {
 		logManager.LogPrintf("Error occurred when preparing remove attachment %v", err)
 		return false

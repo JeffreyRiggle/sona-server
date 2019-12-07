@@ -54,6 +54,19 @@ func HandleIncidentUpdate(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Access-Control-Allow-Origin", "*")
 	w.Header().Set("Content-Type", "application/json")
 
+	token := r.Header.Get("X-Sona-Token")
+	if !userManager.ValidateUser(token) {
+		logManager.LogPrintf("Invalid Token %v used", token)
+		w.WriteHeader(http.StatusForbidden)
+		return
+	}
+
+	if !HasPermission(token, availablePermissions.modifyIncident) {
+		logManager.LogPrintf("Token %v does not allow for modify incident", token)
+		w.WriteHeader(http.StatusUnauthorized)
+		return
+	}
+
 	vars := mux.Vars(r)
 
 	incidentId, err := strconv.Atoi(vars["incidentId"])
@@ -118,6 +131,19 @@ func HandleGetAttachments(w http.ResponseWriter, r *http.Request) {
 	logManager.LogPrintln("Getting attachments")
 	w.Header().Set("Access-Control-Allow-Origin", "*")
 
+	token := r.Header.Get("X-Sona-Token")
+	if !userManager.ValidateUser(token) {
+		logManager.LogPrintf("Invalid Token %v used", token)
+		w.WriteHeader(http.StatusForbidden)
+		return
+	}
+
+	if !HasPermission(token, availablePermissions.viewIncident) {
+		logManager.LogPrintf("Token %v does not allow for view incident", token)
+		w.WriteHeader(http.StatusUnauthorized)
+		return
+	}
+
 	vars := mux.Vars(r)
 
 	incidentId, err := strconv.Atoi(vars["incidentId"])
@@ -151,6 +177,19 @@ func HandleGetAttachments(w http.ResponseWriter, r *http.Request) {
 func HandleUploadAttachment(w http.ResponseWriter, r *http.Request) {
 	logManager.LogPrintln("Got upload attachment request")
 	w.Header().Set("Access-Control-Allow-Origin", "*")
+
+	token := r.Header.Get("X-Sona-Token")
+	if !userManager.ValidateUser(token) {
+		logManager.LogPrintf("Invalid Token %v used", token)
+		w.WriteHeader(http.StatusForbidden)
+		return
+	}
+
+	if !HasPermission(token, availablePermissions.modifyIncident) {
+		logManager.LogPrintf("Token %v does not allow for modify incident", token)
+		w.WriteHeader(http.StatusUnauthorized)
+		return
+	}
 
 	vars := mux.Vars(r)
 	incidentId, err := strconv.Atoi(vars["incidentId"])
@@ -202,6 +241,19 @@ func HandleDownloadAttachment(w http.ResponseWriter, r *http.Request) {
 	logManager.LogPrintln("Got download request.")
 	w.Header().Set("Access-Control-Allow-Origin", "*")
 
+	token := r.Header.Get("X-Sona-Token")
+	if !userManager.ValidateUser(token) {
+		logManager.LogPrintf("Invalid Token %v used", token)
+		w.WriteHeader(http.StatusForbidden)
+		return
+	}
+
+	if !HasPermission(token, availablePermissions.viewIncident) {
+		logManager.LogPrintf("Token %v does not allow for view incident", token)
+		w.WriteHeader(http.StatusUnauthorized)
+		return
+	}
+
 	vars := mux.Vars(r)
 
 	incidentId := vars["incidentId"]
@@ -232,6 +284,19 @@ func HandleDownloadAttachment(w http.ResponseWriter, r *http.Request) {
 
 func HandleRemoveAttachment(w http.ResponseWriter, r *http.Request) {
 	logManager.LogPrintln("Got remove attachment request.")
+
+	token := r.Header.Get("X-Sona-Token")
+	if !userManager.ValidateUser(token) {
+		logManager.LogPrintf("Invalid Token %v used", token)
+		w.WriteHeader(http.StatusForbidden)
+		return
+	}
+
+	if !HasPermission(token, availablePermissions.modifyIncident) {
+		logManager.LogPrintf("Token %v does not allow for modify incident", token)
+		w.WriteHeader(http.StatusUnauthorized)
+		return
+	}
 
 	vars := mux.Vars(r)
 
@@ -295,6 +360,19 @@ func HandleGetIncident(w http.ResponseWriter, r *http.Request) {
 	logManager.LogPrintln("Got incident state request")
 	w.Header().Set("Access-Control-Allow-Origin", "*")
 
+	token := r.Header.Get("X-Sona-Token")
+	if !userManager.ValidateUser(token) {
+		logManager.LogPrintf("Invalid Token %v used", token)
+		w.WriteHeader(http.StatusForbidden)
+		return
+	}
+
+	if !HasPermission(token, availablePermissions.viewIncident) {
+		logManager.LogPrintf("Token %v does not allow for view incident", token)
+		w.WriteHeader(http.StatusUnauthorized)
+		return
+	}
+
 	vars := mux.Vars(r)
 
 	incidentId, err := strconv.Atoi(vars["incidentId"])
@@ -325,6 +403,19 @@ func HandleGetIncidents(w http.ResponseWriter, r *http.Request) {
 	logManager.LogPrintln("Got incidents request")
 	w.Header().Set("Access-Control-Allow-Origin", "*")
 	w.Header().Set("Content-Type", "application/json;charset=UTF-8")
+
+	token := r.Header.Get("X-Sona-Token")
+	if !userManager.ValidateUser(token) {
+		logManager.LogPrintf("Invalid Token %v used", token)
+		w.WriteHeader(http.StatusForbidden)
+		return
+	}
+
+	if !HasPermission(token, availablePermissions.viewIncident) {
+		logManager.LogPrintf("Token %v does not allow for view incident", token)
+		w.WriteHeader(http.StatusUnauthorized)
+		return
+	}
 
 	filter, passed := convertFilter(r)
 

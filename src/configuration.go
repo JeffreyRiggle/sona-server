@@ -1,18 +1,19 @@
 package main
 
 // Config defines the configuration that can be used on this web service.
-// The IncidentManagerType controls what manager to use (0 = runtime, 1 = dynamodb, 2 = mysql, 3 = datastore)
+// The ManagerType controls what manager to use (0 = runtime, 1 = dynamodb, 2 = mysql, 3 = datastore)
 // The FileManagerType controls what file manager to use (0 = local, 1 = S3)
 type Config struct {
-	IncidentManagerType int                    `json:"incidentmanagertype"`
-	FileManagerType     int                    `json:"filemanagertype"`
-	DynamoConfig        DynamoDBConfig         `json:"dynamodb"`
-	MYSQL               MySQLConfig            `json:"mysql"`
-	DataStore           DataStoreConfig        `json:"datastore"`
-	LocalFileConfig     LocalFileManagerConfig `json:"fileconfig"`
-	S3Config            S3FileManagerConfig    `json:"s3config"`
-	Hooks               WebHooks               `json:"webhooks"`
-	Logging             LogConfig              `json:"logging"`
+	ManagerType     int                    `json:"managertype"`
+	FileManagerType int                    `json:"filemanagertype"`
+	DynamoConfig    DynamoDBConfig         `json:"dynamodb"`
+	MYSQL           MySQLConfig            `json:"mysql"`
+	DataStore       DataStoreConfig        `json:"datastore"`
+	LocalFileConfig LocalFileManagerConfig `json:"fileconfig"`
+	S3Config        S3FileManagerConfig    `json:"s3config"`
+	Hooks           WebHooks               `json:"webhooks"`
+	Logging         LogConfig              `json:"logging"`
+	User            UserConfig             `json:"userconfig"`
 }
 
 // WebHook defines an endpoint to call.
@@ -53,10 +54,13 @@ type WebBodyItem struct {
 // The AddedHooks are web hooks to call when an incident has been created.
 // The UpdatedHooks are web hooks to call when an incident has been updated.
 // The AttachedHooks are web hooks to call when an attachment has been added to an incident.
+// The UpdatedUserHooks are web hooks to call when a user is updated.
 type WebHooks struct {
-	AddedHooks    []WebHook `json:"addedhooks"`
-	UpdatedHooks  []WebHook `json:"updatedhooks"`
-	AttachedHooks []WebHook `json:"attachedhooks"`
+	AddedHooks       []WebHook `json:"addedhooks"`
+	UpdatedHooks     []WebHook `json:"updatedhooks"`
+	AttachedHooks    []WebHook `json:"attachedhooks"`
+	AddedUserHooks   []WebHook `json:"addedUserHooks"`
+	UpdatedUserHooks []WebHook `json:"updatedUserHooks"`
 }
 
 // DynamoDBConfig is the configuration to use if the dynamodb mananger is in use.
@@ -65,8 +69,10 @@ type WebHooks struct {
 // The AttachmentTableOverride will override the default attachment table name and use that instead.
 type DynamoDBConfig struct {
 	Region                  string `json:"region"`
+	Endpoint                string `json:"endpoint"`
 	IncidentTableOverride   string `json:"incidenttableoverride"`
 	AttachmentTableOverride string `json:"attachmenttableoverride"`
+	UserTableOverride       string `json:"usertableoverride"`
 }
 
 // LocalFileManagerConfig controls the configuration of the local file manager if it is in use.
@@ -107,8 +113,14 @@ type MySQLConfig struct {
 
 // DataStoreConfig controls the configuration of a google cloud datastore if it is in use.
 // The ProjectName controls what google cloud project will be used.
-// The AuthFile controls what json file to use for authentication.  
+// The AuthFile controls what json file to use for authentication.
 type DataStoreConfig struct {
 	ProjectName string `json:"projectname"`
 	AuthFile    string `json:"authfile"`
+}
+
+// UserConfig to use when creating new users
+// The DefaultPermissions are the permissions that should be granted to all new users.
+type UserConfig struct {
+	DefaultPermissions []string `json:"defaultpermissions"`
 }

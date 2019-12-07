@@ -1,6 +1,7 @@
 package main
 
 import (
+	"sort"
 	"strings"
 )
 
@@ -42,6 +43,10 @@ func (manager RuntimeIncidentManager) GetIncidents(filter *FilterRequest) ([]Inc
 			retVal = append(retVal, *v)
 		}
 	}
+
+	sort.Slice(retVal, func(i, j int) bool {
+		return retVal[i].Id < retVal[j].Id
+	})
 
 	return retVal, true
 }

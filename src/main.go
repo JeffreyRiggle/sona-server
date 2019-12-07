@@ -14,8 +14,16 @@ import (
 )
 
 var logManager LogManager
+var admin = AddUser{
+	EmailAddress: "a@b.c",
+	FirstName:    "Admin",
+	UserName:     "Administrator",
+	Password:     "admin",
+}
+var adminPermissions = make([]string, 0)
 
 func main() {
+	adminPermissions = append(adminPermissions, availablePermissions.master)
 	var path string
 	if len(os.Args) > 1 {
 		path = os.Args[1]
@@ -62,12 +70,14 @@ func loadConfig(file string) {
 	log.Printf("Loaded config %v\n", config)
 	setupLogManager(config)
 	setupFileManager(config)
-	setupIncidentManager(config)
+	setupManagers(config)
 
 	hookManager = HookManager{
 		config.Hooks.AddedHooks,
 		config.Hooks.UpdatedHooks,
 		config.Hooks.AttachedHooks,
+		config.Hooks.AddedUserHooks,
+		config.Hooks.UpdatedUserHooks,
 	}
 }
 
@@ -82,6 +92,9 @@ func useDefaultConfig() {
 	logManager.Initialize()
 	fileManager = LocalFileManager{currentUser.HomeDir}
 	incidentManager = RuntimeIncidentManager{make(map[int64]*Incident), make(map[int][]Attachment)}
+	userManager = RuntimeUserManager{make(map[int64]*User), make(map[int64]string), make(map[int64][]string), make([]string, 1)}
+	_, res := userManager.AddUser(&admin)
+	userManager.SetPermissions(res.Id, adminPermissions)
 }
 
 func setupLogManager(config Config) {
@@ -113,32 +126,41 @@ func setupFileManager(config Config) {
 	fileManager = LocalFileManager{currentUser.HomeDir}
 }
 
-func setupIncidentManager(config Config) {
-	if config.IncidentManagerType == 0 {
-		log.Println("Using Runtime incident manager")
+func setupManagers(config Config) {
+	if config.ManagerType == 0 {
+		log.Println("Using Runtime managers")
 		incidentManager = RuntimeIncidentManager{make(map[int64]*Incident), make(map[int][]Attachment)}
+		setupRuntimeUsermanager(config)
 		return
 	}
 
-	if config.IncidentManagerType == 1 {
-		setupDynamoDBIncidentManager(config)
+	if config.ManagerType == 1 {
+		setupDynamoDBManagers(config)
 		return
 	}
 
-	if config.IncidentManagerType == 2 {
-		setupMySQLIncidentManager(config)
+	if config.ManagerType == 2 {
+		conn := fmt.Sprintf("%v:%v@tcp(%v:%v)/%v", config.MYSQL.UserName, config.MYSQL.Password, config.MYSQL.Host, config.MYSQL.Port, config.MYSQL.DBName)
+		db, err := sql.Open("mysql", conn)
+
+		if err != nil {
+			panic(err)
+		}
+
+		setupMySQLIncidentManager(config, db)
+		setupSQLUsermanager(config, db)
 		return
 	}
 
-	if config.IncidentManagerType == 3 {
+	if config.ManagerType == 3 {
 		setupDataStoreIncidentManager(config)
 		return
 	}
 
-	panic(fmt.Sprintf("Invalid incident manager config %v", config.IncidentManagerType))
+	panic(fmt.Sprintf("Invalid manager config %v", config.ManagerType))
 }
 
-func setupDynamoDBIncidentManager(config Config) {
+func setupDynamoDBManagers(config Config) {
 	if len(config.DynamoConfig.Region) <= 0 {
 		panic("No configured region")
 	}
@@ -161,19 +183,33 @@ func setupDynamoDBIncidentManager(config Config) {
 		attach = "IncidentAttachments"
 	}
 
-	dbManager := DynamoDBIncidentManager{&config.DynamoConfig.Region, &incs, &attach}
-	dbManager.Initialize()
-	incidentManager = &dbManager
-}
-
-func setupMySQLIncidentManager(config Config) {
-	conn := fmt.Sprintf("%v:%v@tcp(%v:%v)/%v", config.MYSQL.UserName, config.MYSQL.Password, config.MYSQL.Host, config.MYSQL.Port, config.MYSQL.DBName)
-	db, err := sql.Open("mysql", conn)
-
-	if err != nil {
-		panic(err)
+	var usr string
+	if len(config.DynamoConfig.UserTableOverride) > 0 {
+		usr = config.DynamoConfig.UserTableOverride
+		log.Printf("Found User table override %v\n", usr)
+	} else {
+		usr = "Users"
 	}
 
+	dbManager := DynamoDBIncidentManager{
+		&config.DynamoConfig.Region,
+		&config.DynamoConfig.Endpoint,
+		&incs, &attach,
+	}
+	dbManager.Initialize()
+	incidentManager = &dbManager
+
+	udbManager := DynamoDBUserManager{
+		&config.DynamoConfig.Region,
+		&config.DynamoConfig.Endpoint,
+		&usr,
+		config.User.DefaultPermissions,
+	}
+	udbManager.Initialize()
+	userManager = &udbManager
+}
+
+func setupMySQLIncidentManager(config Config, db *sql.DB) {
 	mysqlManager := MySQLManager{db}
 	mysqlManager.Initialize()
 	incidentManager = &mysqlManager
@@ -187,4 +223,24 @@ func setupDataStoreIncidentManager(config Config) {
 		0,
 	}
 	incidentManager = &dataStoreManager
+}
+
+func setupRuntimeUsermanager(config Config) {
+	userManager = RuntimeUserManager{make(map[int64]*User), make(map[int64]string), make(map[int64][]string), config.User.DefaultPermissions}
+	_, res := userManager.AddUser(&admin)
+	userManager.SetPermissions(res.Id, adminPermissions)
+}
+
+func setupSQLUsermanager(config Config, db *sql.DB) {
+	usrMySQLManager := MySQLUserManager{db, config.User.DefaultPermissions}
+	usrMySQLManager.Initialize()
+
+	userManager = usrMySQLManager
+	_, found := userManager.GetUser(1)
+
+	if !found {
+		log.Println("No administrator found creating admin account")
+		_, res := userManager.AddUser(&admin)
+		userManager.SetPermissions(res.Id, adminPermissions)
+	}
 }

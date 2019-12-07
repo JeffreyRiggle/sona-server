@@ -50,7 +50,7 @@ func (manager LogManager) LogFatal(v ...interface{}) {
 		return
 	}
 
-	log.Fatal(v)
+	log.Fatal(v...)
 }
 
 // LogFatalf logs a fatal formated entry but only if logging is enabled.
@@ -59,7 +59,7 @@ func (manager LogManager) LogFatalf(format string, v ...interface{}) {
 		return
 	}
 
-	log.Fatalf(format, v)
+	log.Fatalf(format, v...)
 }
 
 // LogFatalln logs a fatal entry but only if logging is enabled.
@@ -68,7 +68,7 @@ func (manager LogManager) LogFatalln(v ...interface{}) {
 		return
 	}
 
-	log.Fatalln(v)
+	log.Fatalln(v...)
 }
 
 // LogPanic logs a panic entry but only if logging is enabled.
@@ -77,7 +77,7 @@ func (manager LogManager) LogPanic(v ...interface{}) {
 		return
 	}
 
-	log.Panic(v)
+	log.Panic(v...)
 }
 
 // LogPanicf logs a formatted panic entry but only if logging is enabled.
@@ -86,7 +86,7 @@ func (manager LogManager) LogPanicf(format string, v ...interface{}) {
 		return
 	}
 
-	log.Panicf(format, v)
+	log.Panicf(format, v...)
 }
 
 // LogPanicln logs a panic entry but only if logging is enabled.
@@ -95,7 +95,7 @@ func (manager LogManager) LogPanicln(v ...interface{}) {
 		return
 	}
 
-	log.Panicln(v)
+	log.Panicln(v...)
 }
 
 // LogPrint logs an entry but only if logging is enabled.
@@ -104,7 +104,7 @@ func (manager LogManager) LogPrint(v ...interface{}) {
 		return
 	}
 
-	log.Print(v)
+	log.Print(v...)
 }
 
 // LogPrintf logs a fomratted entry but only if logging is enabled.
@@ -113,7 +113,7 @@ func (manager LogManager) LogPrintf(format string, v ...interface{}) {
 		return
 	}
 
-	log.Printf(format, v)
+	log.Printf(format, v...)
 }
 
 // LogPrintln logs an entry but only if logging is enabled.
@@ -122,5 +122,5 @@ func (manager LogManager) LogPrintln(v ...interface{}) {
 		return
 	}
 
-	log.Println(v)
+	log.Println(v...)
 }

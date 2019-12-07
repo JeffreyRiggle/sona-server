@@ -28,41 +28,44 @@ func NewRouter() *mux.Router {
 	return router
 }
 
+// TODO create SQL user manager
+// TODO create dynamodb user manager
+// TODO create datastore user manager
 var routes = Routes{
 	Route{
 		"Create",
 		"POST",
-		"/sona/v1/create",
+		"/sona/v1/incidents",
 		HandleCreateIncident,
 	},
 	Route{
 		"Update",
 		"PUT",
-		"/sona/v1/{incidentId}/update",
+		"/sona/v1/incidents/{incidentId}",
 		HandleIncidentUpdate,
 	},
 	Route{
 		"GetAttachments",
 		"GET",
-		"/sona/v1/{incidentId}/attachments",
+		"/sona/v1/incidents/{incidentId}/attachments",
 		HandleGetAttachments,
 	},
 	Route{
 		"UploadAttachment",
 		"POST",
-		"/sona/v1/{incidentId}/attachment",
+		"/sona/v1/incidents/{incidentId}/attachment",
 		HandleUploadAttachment,
 	},
 	Route{
 		"DownloadAttachment",
 		"GET",
-		"/sona/v1/{incidentId}/attachment/{attachmentId}",
+		"/sona/v1/incidents/{incidentId}/attachment/{attachmentId}",
 		HandleDownloadAttachment,
 	},
 	Route{
 		"RemoveAttachment",
 		"DELETE",
-		"/sona/v1/{incidentId}/attachment/{attachmentId}",
+		"/sona/v1/incidents/{incidentId}/attachment/{attachmentId}",
 		HandleRemoveAttachment,
 	},
 	Route{
@@ -74,7 +77,49 @@ var routes = Routes{
 	Route{
 		"GetIncident",
 		"GET",
-		"/sona/v1/{incidentId}",
+		"/sona/v1/incidents/{incidentId}",
 		HandleGetIncident,
+	},
+	Route{
+		"CreateUser",
+		"POST",
+		"/sona/v1/users",
+		HandleCreateUser,
+	},
+	Route{
+		"GetUser",
+		"GET",
+		"/sona/v1/users/{userId}",
+		HandleGetUser,
+	},
+	Route{
+		"UpdateUser",
+		"PUT",
+		"/sona/v1/users/{userId}",
+		HandleUpdateUser,
+	},
+	Route{
+		"DeleteUser",
+		"DELETE",
+		"/sona/v1/users/{userId}",
+		HandleDeleteUser,
+	},
+	Route{
+		"Authentication",
+		"PUT",
+		"/sona/v1/users/{userId}/authentication",
+		HandleChangePassword,
+	},
+	Route{
+		"UserPermissions",
+		"PUT",
+		"/sona/v1/users/{userId}/permissions",
+		HandleSetPermissions,
+	},
+	Route{
+		"Authenticate",
+		"POST",
+		"/sona/v1/authenticate",
+		HandleAuthentication,
 	},
 }

@@ -3,18 +3,18 @@ Sona server is a server that uses a REST API to manage incidents. Below is the e
 
 | Method | Url                                             | Description                             |
 |--------|-------------------------------------------------|-----------------------------------------|
-| POST   | /sona/v1/create                                 | Creates an incident.                    |
-| PUT    | /sona/v1/{incidentId}/update                    | Updates an incident.                    |
-| GET    | sona/v1/{incidentId}/attachments                | Gets an incidents attachments.          |
-| POST   | /sona/v1/{incidentId}/attachment                | Uploads an attachment to an incident.   |
-| GET    | /sona/v1/{incidentId}/attachment/{attachmentId} | Downloads an attachment.                |
-| DELETE | /sona/v1/{incidentId}/attachment/{attachmentId} | Deletes an attachment from an incident. |
+| POST   | /sona/v1/incidents                              | Creates an incident.                    |
+| PUT    | /sona/v1/incidents/{incidentId}                 | Updates an incident.                    |
+| GET    | sona/v1/incidents/{incidentId}/attachments      | Gets an incidents attachments.          |
+| POST   | /sona/v1/incidents/{incidentId}/attachment      | Uploads an attachment to an incident.   |
+| GET    | /sona/v1/incidents/{incidentId}/attachment/{attachmentId} | Downloads an attachment.                |
+| DELETE | /sona/v1/incidents/{incidentId}/attachment/{attachmentId} | Deletes an attachment from an incident. |
 | GET    | /sona/v1/incidents                              | Gets incidents.                         |
 | GET    | /sona/v1/incidents/{incidentId}                 | Gets an incident.                       |
 
 ## Creating in incident
 
-> POST /sona/v1/create
+> POST /sona/v1/incidents
 
 ### Body
 | Property    | type                | Description                                  | Required |
@@ -28,7 +28,7 @@ Sona server is a server that uses a REST API to manage incidents. Below is the e
 
 ## Updating an incident
 
-> PUT /sona/v1/{incidentId}/update
+> PUT /sona/v1/incidents/{incidentId}
 
 ### Body
 | Property    | type                | Description                                  | Required |
@@ -41,7 +41,7 @@ Sona server is a server that uses a REST API to manage incidents. Below is the e
 
 ## Getting incident attachments
 
-> GET sona/v1/{incidentId}/attachments
+> GET sona/v1/incidents/{incidentId}/attachments
 
 ## Response
 
@@ -65,7 +65,7 @@ multipart/form-data upload file.
 
 ## Download an attachment
 
-> GET sona/v1/{incidentId}/attachments/{attachmentId}
+> GET sona/v1/incidents/{incidentId}/attachments/{attachmentId}
 
 ### Response
 
@@ -74,7 +74,7 @@ Attachment content
 
 ## Remove an attachment
 
-> DELETE sona/v1/{incidentId}/attachments/{attachmentId}
+> DELETE sona/v1/incidents/{incidentId}/attachments/{attachmentId}
 
 ## Get all incidents
 
@@ -88,7 +88,7 @@ Attachment content
 
 ## Get specific incidents
 
-> GET sona/v1/incident/{incidentId}
+> GET sona/v1/incidents/{incidentId}
 
 | Property    | type                | Description                                  |
 |-------------|---------------------|----------------------------------------------|

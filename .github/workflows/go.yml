@@ -54,7 +54,9 @@ jobs:
           fi
 
       - name: Start
-        run: ./src ../test/RuntimeConfig.json &
+        run: |
+          go build -v .  
+          ./src ../test/RuntimeConfig.json &
         working-directory: ./src
     
       - name: Install python

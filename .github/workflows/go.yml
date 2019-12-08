@@ -60,7 +60,7 @@ jobs:
       - name: Install python
         uses: actions/setup-python@v1
         with:
-          python-version: '2.7.15'
+          python-version: '2.x'
       
       - name: Run E2E Tests
         run: python ../test/apitest.py

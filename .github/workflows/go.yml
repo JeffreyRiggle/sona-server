@@ -63,4 +63,5 @@ jobs:
           python-version: '2.x'
       
       - name: Run E2E Tests
-        run: python ../test/apitest.py
+        run: python apitest.py
+        working-directory: ./test

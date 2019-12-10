@@ -52,7 +52,9 @@ func (manager RuntimeUserManager) GetUser(userId int64) (User, bool) {
 }
 
 func (manager RuntimeUserManager) UpdateUser(userId int64, user *User) bool {
-	manager.Users[userId] = user
+	originalUser := manager.Users[userId]
+	updateUser(originalUser, *user)
+	manager.Users[userId] = originalUser
 	return true
 }
 

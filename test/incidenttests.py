@@ -69,8 +69,21 @@ def test_update_incident():
     
     assert_that(res.status_code).is_equal_to(200)
 
+def test_attach_without_auth():
+    res = requests.post('http://localhost:8080/sona/v1/incidents/0/attachment')
+    assert_that(res.status_code).is_equal_to(403)
+
+def test_attach_without_permission():
+    global restrictedToken
+
+    res = requests.post('http://localhost:8080/sona/v1/incidents/0/attachment', headers={'X-Sona-Token': restrictedToken})
+    assert_that(res.status_code).is_equal_to(401)
+
+
 def setup():
     testrunner.addTest("Create Incident", test_create_incident)
     testrunner.addTest("Update Incident without auth", test_update_incident_without_auth)
     testrunner.addTest("Update Incident without permission", test_update_incident_without_permission)
     testrunner.addTest("Update Incident", test_update_incident)
+    testrunner.addTest("Attach to Incident without auth", test_attach_without_auth)
+    testrunner.addTest("Attach to Incident without permission", test_attach_without_permission)

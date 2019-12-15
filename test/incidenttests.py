@@ -79,6 +79,13 @@ def test_attach_without_permission():
     res = requests.post('http://localhost:8080/sona/v1/incidents/0/attachment', headers={'X-Sona-Token': restrictedToken})
     assert_that(res.status_code).is_equal_to(401)
 
+def test_attach():
+    global incAdminToken
+
+    files = {'uploadfile': open('attach.txt', 'rb')} 
+    res = requests.post('http://localhost:8080/sona/v1/incidents/0/attachment', headers={'X-Sona-Token': incAdminToken}, files=files)
+    
+    assert_that(res.status_code).is_equal_to(200)
 
 def setup():
     testrunner.addTest("Create Incident", test_create_incident)
@@ -87,3 +94,4 @@ def setup():
     testrunner.addTest("Update Incident", test_update_incident)
     testrunner.addTest("Attach to Incident without auth", test_attach_without_auth)
     testrunner.addTest("Attach to Incident without permission", test_attach_without_permission)
+    testrunner.addTest("Attach to Incident", test_attach)

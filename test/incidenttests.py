@@ -70,13 +70,15 @@ def test_update_incident():
     assert_that(res.status_code).is_equal_to(200)
 
 def test_attach_without_auth():
-    res = requests.post('http://localhost:8080/sona/v1/incidents/0/attachment')
+    files = {'uploadfile': open('attach.txt', 'rb')} 
+    res = requests.post('http://localhost:8080/sona/v1/incidents/0/attachment', files=files)
     assert_that(res.status_code).is_equal_to(403)
 
 def test_attach_without_permission():
     global restrictedToken
 
-    res = requests.post('http://localhost:8080/sona/v1/incidents/0/attachment', headers={'X-Sona-Token': restrictedToken})
+    files = {'uploadfile': open('attach.txt', 'rb')} 
+    res = requests.post('http://localhost:8080/sona/v1/incidents/0/attachment', headers={'X-Sona-Token': restrictedToken}, files=files)
     assert_that(res.status_code).is_equal_to(401)
 
 def test_attach():
@@ -87,6 +89,28 @@ def test_attach():
     
     assert_that(res.status_code).is_equal_to(200)
 
+def test_get_attachments_without_auth():
+        res = requests.get('http://localhost:8080/sona/v1/incidents/0/attachments')
+        assert_that(res.status_code).is_equal_to(403)
+
+def test_get_attachments_without_permission():
+        global restrictedToken
+        
+        res = requests.get('http://localhost:8080/sona/v1/incidents/0/attachments', headers={'X-Sona-Token': restrictedToken})
+        assert_that(res.status_code).is_equal_to(401)
+
+def test_get_attachments():
+    global incAdminToken
+        
+    res = requests.get('http://localhost:8080/sona/v1/incidents/0/attachments', headers={'X-Sona-Token': incAdminToken})
+    assert_that(res.status_code).is_equal_to(200)
+
+    content = res.json()
+    assert_that(len(content)).is_equal_to(1)
+    
+    attach = content[0]
+    assert_that(attach.get("filename")).is_equal_to("attach.txt")
+
 def setup():
     testrunner.addTest("Create Incident", test_create_incident)
     testrunner.addTest("Update Incident without auth", test_update_incident_without_auth)
@@ -95,3 +119,6 @@ def setup():
     testrunner.addTest("Attach to Incident without auth", test_attach_without_auth)
     testrunner.addTest("Attach to Incident without permission", test_attach_without_permission)
     testrunner.addTest("Attach to Incident", test_attach)
+    testrunner.addTest("Get attachments without auth", test_get_attachments_without_auth)
+    testrunner.addTest("Get attachments without permission", test_get_attachments_without_permission)
+    testrunner.addTest("Get attachments", test_get_attachments)

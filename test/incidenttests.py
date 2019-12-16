@@ -1,4 +1,5 @@
 import requests
+import json
 import testrunner
 from assertpy import assert_that
 
@@ -111,6 +112,92 @@ def test_get_attachments():
     attach = content[0]
     assert_that(attach.get("filename")).is_equal_to("attach.txt")
 
+def test_download_attachment_without_auth():
+    res = requests.get('http://localhost:8080/sona/v1/incidents/0/attachment/attach.txt')
+    assert_that(res.status_code).is_equal_to(403)
+
+def test_download_attachment_without_permission():
+    global restrictedToken
+    res = requests.get('http://localhost:8080/sona/v1/incidents/0/attachment/attach.txt', headers={'X-Sona-Token': restrictedToken})
+    assert_that(res.status_code).is_equal_to(401)
+
+def test_download_attachment():
+    global incAdminToken
+    res = requests.get('http://localhost:8080/sona/v1/incidents/0/attachment/attach.txt', headers={'X-Sona-Token': incAdminToken})
+    assert_that(res.status_code).is_equal_to(200)
+
+def test_delete_attachment_without_auth():
+    res = requests.delete('http://localhost:8080/sona/v1/incidents/0/attachment/attach.txt')
+    assert_that(res.status_code).is_equal_to(403)
+
+def test_delete_attachment_without_permission():
+    global restrictedToken
+
+    res = requests.delete('http://localhost:8080/sona/v1/incidents/0/attachment/attach.txt', headers={'X-Sona-Token': restrictedToken})
+    assert_that(res.status_code).is_equal_to(401)
+
+def test_delete_attachment():
+    global incAdminToken
+
+    res = requests.delete('http://localhost:8080/sona/v1/incidents/0/attachment/attach.txt', headers={'X-Sona-Token': incAdminToken})
+    assert_that(res.status_code).is_equal_to(200)
+
+def test_get_incident_without_auth():
+    res = requests.get('http://localhost:8080/sona/v1/incidents/0')
+    assert_that(res.status_code).is_equal_to(403)
+
+def test_get_incident_without_permission():
+    global restrictedToken
+
+    res = requests.get('http://localhost:8080/sona/v1/incidents/0/', headers={'X-Sona-Token': restrictedToken})
+    assert_that(res.status_code).is_equal_to(401)
+
+def test_get_incident():
+    global incAdminToken
+
+    res = requests.get('http://localhost:8080/sona/v1/incidents/0', headers={'X-Sona-Token': incAdminToken})
+    assert_that(res.status_code).is_equal_to(200)
+
+    inc = res.json()
+
+    assert_that(inc.get("id")).is_equal_to(0)
+    assert_that(inc.get("description")).is_equal_to("Something is wrong")
+    assert_that(inc.get("reporter")).is_equal_to("TestUser")
+    assert_that(inc.get("state")).is_equal_to("In Progress")
+
+def test_get_filtered_incidents():
+    global incAdminToken
+
+    res = requests.post('http://localhost:8080/sona/v1/incidents', json={
+        "description": "Something else is wrong",
+        "reporter": "Steve",
+        "state": "open",
+        "attributes": {
+            "Foo": "Bar"
+        }
+        })
+    
+    assert_that(res.status_code).is_equal_to(201)
+    res = requests.post('http://localhost:8080/sona/v1/incidents', json={
+        "description": "Something new is wrong",
+        "reporter": "Jill",
+        "state": "open",
+        "attributes": {
+            "Foo": "Bar"
+        }
+        })
+    assert_that(res.status_code).is_equal_to(201)
+
+    incFilter = '?filter=%7B%22complexfilters%22%3A%5B%7B%22filters%22%3A%5B%7B%22property%22%3A%22Reporter%22%2C%22comparison%22%3A%22equals%22%2C%22value%22%3A%22Jill%22%7D%5D%2C%22junction%22%3A%22and%22%7D%5D%2C%22union%22%3A%22and%22%7D'
+    req = 'http://localhost:8080/sona/v1/incidents' + incFilter
+    res = requests.get(req, headers={'X-Sona-Token': incAdminToken})
+    
+    assert_that(res.status_code).is_equal_to(200)
+    content = res.json()
+
+    assert_that(len(content)).is_equal_to(1)
+    assert_that(content[0].get("description")).is_equal_to("Something new is wrong")
+
 def setup():
     testrunner.addTest("Create Incident", test_create_incident)
     testrunner.addTest("Update Incident without auth", test_update_incident_without_auth)
@@ -122,3 +209,14 @@ def setup():
     testrunner.addTest("Get attachments without auth", test_get_attachments_without_auth)
     testrunner.addTest("Get attachments without permission", test_get_attachments_without_permission)
     testrunner.addTest("Get attachments", test_get_attachments)
+    testrunner.addTest("Test download attachment without auth", test_download_attachment_without_auth)
+    testrunner.addTest("Test download attachment without permission", test_download_attachment_without_permission)
+    testrunner.addTest("Test download attachment", test_download_attachment)
+    testrunner.addTest("Test delete attachment without auth", test_delete_attachment_without_auth)
+    testrunner.addTest("Test delete attachment without permission", test_delete_attachment_without_permission)
+    testrunner.addTest("Test delete attachment", test_delete_attachment)
+    testrunner.addTest("Test get incident without auth", test_get_incident_without_auth)
+    testrunner.addTest("Test get incident without permission", test_get_incident_without_permission)
+    testrunner.addTest("Test get incident", test_get_incident)
+    testrunner.addTest("Test get filtered incident", test_get_filtered_incidents)
+    # TODO webhooks

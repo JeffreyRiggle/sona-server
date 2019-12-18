@@ -64,10 +64,11 @@ jobs:
         with:
           node-version: '10.x'
 
-      -name: Start web hook server
+      - name: Start web hook server
         run: |
           npm install
           npm run start
+        working-directory: ./test/webhooktester
           
       - name: Install python
         uses: actions/setup-python@v1

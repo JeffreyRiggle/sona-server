@@ -14,7 +14,7 @@
 		                {"key": "incident", "value": "id", "substitute": true},
 		                {"key": "subject", "value": "Incident Created", "substitute": false},
                         {"key": "body", "value": "New Incident Created by {{reporter}} with description {{description}}.", "substitute": true},
-                        {"key": "to", "value": "illusionedrealmsbugs@gmail.com", "substitute": false}
+                        {"key": "to", "value": "foobar@email.com", "substitute": false}
 		            ]
 		        }
             }
@@ -31,7 +31,7 @@
 		                {"key": "incident", "value": "id", "substitute": true},
 		                {"key": "subject", "value": "Incident Updated", "substitute": false},
                         {"key": "body", "value": "Incident {{id}} updated with description {{description}} and state {{state}}.", "substitute": true},
-                        {"key": "to", "value": "illusionedrealmsbugs@gmail.com", "substitute": false}
+                        {"key": "to", "value": "foobar@email.com", "substitute": false}
 		            ]
 		        }
             }
@@ -48,7 +48,7 @@
 		                {"key": "incident", "value": "id", "substitute": true},
 		                {"key": "subject", "value": "Attachment added", "substitute": false},
                         {"key": "body", "value": "{{filename}} Has been attached to Incident {{id}}", "substitute": true},
-                        {"key": "to", "value": "illusionedrealmsbugs@gmail.com", "substitute": false}
+                        {"key": "to", "value": "foobar@email.com", "substitute": false}
 		            ]
 		        }
             }

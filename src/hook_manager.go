@@ -245,6 +245,7 @@ func fireHook(hook WebHook, body *bytes.Buffer) {
 
 	logManager.LogPrintf("Calling %v %v with body %v\n", hook.Method, hook.URL, body)
 	req, err := http.NewRequest(hook.Method, hook.URL, body)
+	req.Header.Set("Content-Type", "application/json")
 
 	if err != nil {
 		logManager.LogPrintf("Failure creating webhook %v: %v\n", hook, err)

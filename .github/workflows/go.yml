@@ -59,6 +59,16 @@ jobs:
           ./src ../test/RuntimeConfig.json &
         working-directory: ./src
     
+      - name: Install node
+        uses: actions/setup-node@v1
+        with:
+          node-version: '10.x'
+
+      -name: Start web hook server
+        run: |
+          npm install
+          npm run start
+          
       - name: Install python
         uses: actions/setup-python@v1
         with:

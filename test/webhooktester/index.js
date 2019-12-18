@@ -1,12 +1,14 @@
 const express = require('express');
+const bodyParser = require('body-parser');
 
 const app = express(express);
-app.use(express.json());
+
+app.use(bodyParser.urlencoded({ extended: false }));
+app.use(bodyParser.json());
 
 const hookCalls = new Map();
 
 app.post('/incidentAdded', (req, res) => {
-    console.log(`Got added call ${req.body}`);
     let current = hookCalls.get('incidentAdded');
 
     if (current) {
@@ -49,14 +51,20 @@ app.post('/incidentAttached', (req, res) => {
 });
 
 app.delete('/calls', (req, res) => {
-    hookCalls = new Map();
+    hookCalls.clear();
     
     res.statusCode = 200;
     res.send('Cleared');
 });
 
 app.get('/calls', (req, res) => {
-    res.json(hookCalls);
+    let retVal = {};
+
+    hookCalls.forEach((v, k) => {
+        retVal[k] = v;
+    });
+
+    res.json(retVal);
 });
 
 app.listen(5000)

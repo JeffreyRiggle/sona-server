@@ -67,7 +67,7 @@ jobs:
       - name: Start web hook server
         run: |
           npm install
-          npm run start
+          npm run start &
         working-directory: ./test/webhooktester
           
       - name: Install python

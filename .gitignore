@@ -16,3 +16,5 @@
 
 * GoogleCloud creds
 src/creds.json
+
+**/node_modules/

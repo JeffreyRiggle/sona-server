@@ -1,0 +1,60 @@
+{
+    "managertype": 0,
+    "filemanagertype": 0,
+    "webhooks": {
+        "addedhooks":
+        [
+            {
+		        "method": "POST",
+                "url": "http://localhost:5000/incidentAdded",
+                "body":
+		        {
+		            "items":
+		            [
+		                {"key": "incident", "value": "id", "substitute": true},
+		                {"key": "subject", "value": "Incident Created", "substitute": false},
+                        {"key": "body", "value": "New Incident Created by {{reporter}} with description {{description}}.", "substitute": true},
+                        {"key": "to", "value": "foobar@email.com", "substitute": false}
+		            ]
+		        }
+            }
+        ],
+        "updatedhooks": 
+        [
+            {
+		        "method": "POST",
+                "url": "http://localhost:5000/incidentUpdated",
+                "body":
+		        {
+		            "items":
+		            [
+		                {"key": "incident", "value": "id", "substitute": true},
+		                {"key": "subject", "value": "Incident Updated", "substitute": false},
+                        {"key": "body", "value": "Incident {{id}} updated with description {{description}} and state {{state}}.", "substitute": true},
+                        {"key": "to", "value": "foobar@email.com", "substitute": false}
+		            ]
+		        }
+            }
+        ],
+        "attachedhooks": 
+        [
+            {
+		        "method": "POST",
+                "url": "http://localhost:5000/incidentAttached",
+                "body":
+		        {
+		            "items":
+		            [
+		                {"key": "incident", "value": "id", "substitute": true},
+		                {"key": "subject", "value": "Attachment added", "substitute": false},
+                        {"key": "body", "value": "{{filename}} Has been attached to Incident {{id}}", "substitute": true},
+                        {"key": "to", "value": "foobar@email.com", "substitute": false}
+		            ]
+		        }
+            }
+        ]
+    },
+    "logging": {
+        "enabled": false
+    }
+}

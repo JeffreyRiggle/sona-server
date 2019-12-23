@@ -51,6 +51,16 @@ func (manager RuntimeUserManager) GetUser(userId int64) (User, bool) {
 	return User{}, false
 }
 
+func (manager RuntimeUserManager) GetUserByEmail(emailAddress string) (User, bool) {
+	for _, u := range manager.Users {
+		if u.EmailAddress == emailAddress {
+			return *u, true
+		}
+	}
+
+	return User{}, false
+}
+
 func (manager RuntimeUserManager) UpdateUser(userId int64, user *User) bool {
 	originalUser := manager.Users[userId]
 	updateUser(originalUser, *user)
@@ -71,7 +81,7 @@ func (manager RuntimeUserManager) AuthenticateUser(user User, password string) (
 	auth := createPasswordHash(user, password) == manager.Passwords[user.Id]
 
 	if !auth {
-		return auth, TokenResponse{""}
+		return auth, TokenResponse{"", -1}
 	}
 
 	token := GenerateToken(user)

@@ -7,7 +7,7 @@ adminToken = ''
 
 def test_create_user():
     res = requests.post('http://localhost:8080/sona/v1/users', json={
-        "emailAddress": "a@b.c",
+        "emailAddress": "aa@b.c",
         "userName": "TestUser",
         "firstName": "Test",
         "lastName": "User",
@@ -17,7 +17,7 @@ def test_create_user():
     assert_that(res.status_code).is_equal_to(201)
 
     user1 = res.json()
-    assert_that(user1.get("emailAddress")).is_equal_to("a@b.c")
+    assert_that(user1.get("emailAddress")).is_equal_to("aa@b.c")
     assert_that(user1.get("userName")).is_equal_to("TestUser")
     assert_that(user1.get("firstName")).is_equal_to("Test")
     assert_that(user1.get("lastName")).is_equal_to("User")
@@ -35,7 +35,7 @@ def test_change_user_without_auth():
 def test_auth_user():
     global userToken
     res = requests.post('http://localhost:8080/sona/v1/authenticate', json={
-        "id": 1,
+        "emailAddress": 'aa@b.c',
         "password": "changeme"
         })
     assert_that(res.status_code).is_equal_to(200)
@@ -61,7 +61,7 @@ def test_update_permissions_with_invalid_auth():
 def test_update_permissions():
     global adminToken
     res = requests.post('http://localhost:8080/sona/v1/authenticate', json={
-        "id": 0,
+        "emailAddress": 'a@b.c',
         "password": "admin"
         })
     adminToken = res.json().get("token")
@@ -84,7 +84,7 @@ def test_get_user():
     assert_that(res.status_code).is_equal_to(200)
     content = res.json()
     assert_that(content.get("id")).is_equal_to(1)
-    assert_that(content.get("emailAddress")).is_equal_to("a@b.c")
+    assert_that(content.get("emailAddress")).is_equal_to("aa@b.c")
     assert_that(content.get("userName")).is_equal_to("TestUser")
     assert_that(content.get("firstName")).is_equal_to("Test")
     assert_that(content.get("lastName")).is_equal_to("User")

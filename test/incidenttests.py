@@ -45,7 +45,7 @@ def test_update_incident_without_permission():
         })
 
     ares = requests.post('http://localhost:8080/sona/v1/authenticate', json={
-        "id": ures.json().get("id"),
+        "emailAddress": ures.json().get("emailAddress"),
         "password": "1234"
         })
 
@@ -60,7 +60,7 @@ def test_update_incident():
     global incAdminToken
 
     res = requests.post('http://localhost:8080/sona/v1/authenticate', json={
-        "id": 0,
+        "emailAddress": 'a@b.c',
         "password": "admin"
         })
     incAdminToken = res.json().get("token")

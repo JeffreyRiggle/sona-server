@@ -25,8 +25,8 @@ type User struct {
 }
 
 type UserPassword struct {
-	Id       int64  `json:"id"`
-	Password string `json:"password"`
+	EmailAddress string `json:"emailAddress"`
+	Password     string `json:"password"`
 }
 
 type PasswordChangeRequest struct {

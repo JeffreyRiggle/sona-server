@@ -167,6 +167,53 @@ func (manager MySQLUserManager) GetUser(userId int64) (User, bool) {
 	return retVal, retVal.Id != -1
 }
 
+func (manager MySQLUserManager) GetUserByEmail(emailAddress string) (User, bool) {
+	retVal := User{
+		Id: -1,
+	}
+	var (
+		id           int64
+		username     string
+		firstname    string
+		lastname     string
+		emailaddress string
+		gender       string
+		permissions  string
+	)
+
+	rows, err := manager.Connection.Query("SELECT Id, UserName, FirstName, LastName, EmailAddress, Gender, Permissions "+
+		"FROM Users "+
+		"WHERE EmailAddress = ?", emailAddress)
+
+	if err != nil {
+		logManager.LogPrintf("Error occurred when preparing get %v\n", err)
+		return retVal, false
+	}
+
+	defer rows.Close()
+	for rows.Next() {
+		err := rows.Scan(&id, &username, &firstname, &lastname, &emailaddress, &gender, &permissions)
+		if err != nil {
+			logManager.LogPrintln(err)
+		}
+
+		if retVal.Id == -1 {
+			retVal = User{
+				Id:           id,
+				UserName:     username,
+				FirstName:    firstname,
+				LastName:     lastname,
+				EmailAddress: emailaddress,
+				Gender:       gender,
+				Permissions:  strings.Split(permissions, ","),
+			}
+		}
+	}
+
+	logManager.LogPrintf("got user: %v\n", retVal)
+	return retVal, retVal.Id != -1
+}
+
 func (manager MySQLUserManager) UpdateUser(userId int64, user *User) bool {
 	usr, pass := manager.GetUser(userId)
 

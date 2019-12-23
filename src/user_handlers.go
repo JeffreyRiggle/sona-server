@@ -317,10 +317,10 @@ func HandleAuthentication(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	user, found := userManager.GetUser(req.Id)
+	user, found := userManager.GetUserByEmail(req.EmailAddress)
 
 	if !found {
-		logManager.LogPrintf("Unable to find user %v", req.Id)
+		logManager.LogPrintf("Unable to find user %v", req.EmailAddress)
 		w.WriteHeader(http.StatusNotFound)
 		return
 	}
@@ -328,7 +328,7 @@ func HandleAuthentication(w http.ResponseWriter, r *http.Request) {
 	auth, token := user.Authenticate(req.Password)
 
 	if !auth {
-		logManager.LogPrintf("Failed to authenticate %v", req.Id)
+		logManager.LogPrintf("Failed to authenticate %v", req.EmailAddress)
 		w.WriteHeader(http.StatusForbidden)
 		return
 	}

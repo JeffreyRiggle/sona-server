@@ -225,6 +225,21 @@ func (manager DynamoDBUserManager) GetUser(userId int64) (User, bool) {
 	return *usr, pass
 }
 
+func (manager DynamoDBUserManager) GetUserByEmail(emailAddress string) (User, bool) {
+	input := &dynamodb.QueryInput{
+		ExpressionAttributeValues: map[string]*dynamodb.AttributeValue{
+			":v1": {
+				N: aws.String(emailAddress),
+			},
+		},
+		KeyConditionExpression: aws.String("emailAddress = :v1"),
+		TableName:              aws.String(*manager.UsersTable),
+	}
+
+	usr, pass := manager.getUserFromDataBaseImpl(input)
+	return *usr, pass
+}
+
 func (manager DynamoDBUserManager) UpdateUser(userId int64, user *User) bool {
 	logManager.LogPrintln("Got update user request.")
 	usr, pass := manager.getUserFromDataBase(userId)
@@ -242,8 +257,6 @@ func (manager DynamoDBUserManager) UpdateUser(userId int64, user *User) bool {
 }
 
 func (manager DynamoDBUserManager) getUserFromDataBase(userId int64) (*User, bool) {
-	svc := CreateService(*manager.Region, *manager.Endpoint)
-
 	input := &dynamodb.QueryInput{
 		ExpressionAttributeValues: map[string]*dynamodb.AttributeValue{
 			":v1": {
@@ -253,6 +266,12 @@ func (manager DynamoDBUserManager) getUserFromDataBase(userId int64) (*User, boo
 		KeyConditionExpression: aws.String("id = :v1"),
 		TableName:              aws.String(*manager.UsersTable),
 	}
+
+	return manager.getUserFromDataBaseImpl(input)
+}
+
+func (manager DynamoDBUserManager) getUserFromDataBaseImpl(input *dynamodb.QueryInput) (*User, bool) {
+	svc := CreateService(*manager.Region, *manager.Endpoint)
 
 	result, err := svc.Query(input)
 

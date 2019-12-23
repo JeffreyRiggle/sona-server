@@ -10,7 +10,8 @@ import (
 )
 
 type TokenResponse struct {
-	Token string `json:"token"`
+	Token  string `json:"token"`
+	UserId int64  `json""userId"`
 }
 
 func GenerateToken(user User) TokenResponse {
@@ -22,7 +23,7 @@ func GenerateToken(user User) TokenResponse {
 
 	permissions := strings.Join(user.Permissions, ",")
 	val := strconv.FormatInt(user.Id, 10) + ":" + id + ":" + strconv.FormatInt(timeout.UnixNano(), 10) + ":" + permissions
-	return TokenResponse{b64.StdEncoding.EncodeToString([]byte(val))}
+	return TokenResponse{b64.StdEncoding.EncodeToString([]byte(val)), user.Id}
 }
 
 func GetTokenUser(token string) int64 {

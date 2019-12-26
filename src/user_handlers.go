@@ -123,16 +123,7 @@ func HandleSetPermissions(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Access-Control-Allow-Origin", "*")
 	w.Header().Set("Content-Type", "application/json")
 
-	token := r.Header.Get("X-Sona-Token")
-	if !userManager.ValidateUser(token) {
-		logManager.LogPrintf("Invalid Token %v used", token)
-		w.WriteHeader(http.StatusForbidden)
-		return
-	}
-
-	if !HasPermission(token, availablePermissions.master) {
-		logManager.LogPrintf("Token %v does not allow for modify user", token)
-		w.WriteHeader(http.StatusUnauthorized)
+	if !validateRequest(w, r, availablePermissions.master) {
 		return
 	}
 
@@ -212,16 +203,7 @@ func HandleDeleteUser(w http.ResponseWriter, r *http.Request) {
 	logManager.LogPrintln("Got user delete request")
 	w.Header().Set("Access-Control-Allow-Origin", "*")
 
-	token := r.Header.Get("X-Sona-Token")
-	if !userManager.ValidateUser(token) {
-		logManager.LogPrintf("Invalid Token %v used", token)
-		w.WriteHeader(http.StatusForbidden)
-		return
-	}
-
-	if !HasPermission(token, availablePermissions.deleteUser) {
-		logManager.LogPrintf("Token %v does not allow for modify user", token)
-		w.WriteHeader(http.StatusUnauthorized)
+	if !validateRequest(w, r, availablePermissions.deleteUser) {
 		return
 	}
 

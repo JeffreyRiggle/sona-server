@@ -14,6 +14,15 @@ type Config struct {
 	Hooks           WebHooks               `json:"webhooks"`
 	Logging         LogConfig              `json:"logging"`
 	User            UserConfig             `json:"userconfig"`
+	Admin           AdminConfig            `json:"adminConfig"`
+}
+
+// AdminConfig defines the admin user to setup.
+// The EmailAddress is the email address to use for the admin.
+// The Password is the administrators initial password.
+type AdminConfig struct {
+	EmailAddress string `json:"emailAddress"`
+	Password     string `json:"password"`
 }
 
 // WebHook defines an endpoint to call.

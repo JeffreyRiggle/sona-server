@@ -61,8 +61,8 @@ def test_update_permissions_with_invalid_auth():
 def test_update_permissions():
     global adminToken
     res = requests.post('http://localhost:8080/sona/v1/authenticate', json={
-        "emailAddress": 'a@b.c',
-        "password": "admin"
+        "emailAddress": 'something@somewhere.com',
+        "password": "itsasecret"
         })
     adminToken = res.json().get("token")
 

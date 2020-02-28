@@ -60,8 +60,8 @@ def test_update_incident():
     global incAdminToken
 
     res = requests.post('http://localhost:8080/sona/v1/authenticate', json={
-        "emailAddress": 'a@b.c',
-        "password": "admin"
+        "emailAddress": 'something@somewhere.com',
+        "password": "itsasecret"
         })
     incAdminToken = res.json().get("token")
 

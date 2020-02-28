@@ -68,6 +68,7 @@ func loadConfig(file string) {
 	parser.Decode(&config)
 
 	log.Printf("Loaded config %v\n", config)
+	setupAdmin(config)
 	setupLogManager(config)
 	setupFileManager(config)
 	setupManagers(config)
@@ -95,6 +96,16 @@ func useDefaultConfig() {
 	userManager = RuntimeUserManager{make(map[int64]*User), make(map[int64]string), make(map[int64][]string), make([]string, 1)}
 	_, res := userManager.AddUser(&admin)
 	userManager.SetPermissions(res.Id, adminPermissions)
+}
+
+func setupAdmin(config Config) {
+	if len(config.Admin.EmailAddress) != 0 {
+		admin.EmailAddress = config.Admin.EmailAddress
+	}
+
+	if len(config.Admin.Password) != 0 {
+		admin.Password = config.Admin.Password
+	}
 }
 
 func setupLogManager(config Config) {

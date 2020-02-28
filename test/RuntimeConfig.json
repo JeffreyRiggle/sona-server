@@ -1,4 +1,8 @@
 {
+    "adminConfig": {
+        "emailAddress": "something@somewhere.com",
+        "password": "itsasecret"
+    },
     "managertype": 0,
     "filemanagertype": 0,
     "webhooks": {

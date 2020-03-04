@@ -55,19 +55,17 @@ jobs:
 
       - name: Start
         run: |
-          go build -v .  
-          ./src ../test/RuntimeConfig.json &
+          go build -v .
+          docker build . -t sona:test
+          config=`cat ../test/RuntimeConfig.json`
+          docker network create mynet
+          docker run -i -e CONFIG="$config" -p 8080:8080 --network mynet sona:test &
         working-directory: ./src
-    
-      - name: Install node
-        uses: actions/setup-node@v1
-        with:
-          node-version: '10.x'
 
       - name: Start web hook server
         run: |
-          npm install
-          npm run start &
+          docker build . -t webhook:tester
+          docker run -i -p 5000:5000 --network mynet --name hookservice webhook:tester &
         working-directory: ./test/webhooktester
           
       - name: Install python

@@ -1,11 +1,12 @@
-FROM golang
+FROM ubuntu:latest
 
-ADD . /go/src/bitbucket.com/jeffreyriggle/sona
+RUN apt-get update
 
-WORKDIR /go/src/bitbucket.com/jeffreyriggle/sona
+COPY ./src /
+COPY start.sh /
 
-RUN go get && go install bitbucket.com/jeffreyriggle/sona
+RUN [ "chmod", "+x", "/start.sh" ]
 
-ENTRYPOINT /go/bin/sona
+ENTRYPOINT [ "/start.sh" ]
 
 EXPOSE 8080

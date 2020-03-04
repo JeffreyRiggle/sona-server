@@ -1,6 +1,7 @@
 import requests
 import json
 import testrunner
+import time
 from assertpy import assert_that
 
 incAdminToken = ''
@@ -217,6 +218,7 @@ def test_add_incident_hook():
 
     webhookIncident = res.json()
 
+    time.sleep(5)
     hooks = requests.get('http://localhost:5000/calls')
     addedCalls = hooks.json().get("incidentAdded")
     assert_that(len(addedCalls)).is_equal_to(1)
@@ -235,6 +237,7 @@ def test_update_incident_hook():
     
     assert_that(res.status_code).is_equal_to(200)
 
+    time.sleep(5)
     hooks = requests.get('http://localhost:5000/calls')
     updatedCalls = hooks.json().get("incidentUpdated")
     assert_that(len(updatedCalls)).is_equal_to(1)
@@ -252,6 +255,7 @@ def test_attach_incident_hook():
     
     assert_that(res.status_code).is_equal_to(200)
 
+    time.sleep(5)
     hooks = requests.get('http://localhost:5000/calls')
     attachedCalls = hooks.json().get("incidentAttached")
     assert_that(len(attachedCalls)).is_equal_to(1)

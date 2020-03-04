@@ -10,7 +10,7 @@
         [
             {
 		        "method": "POST",
-                "url": "http://localhost:5000/incidentAdded",
+                "url": "http://0.0.0.0:5000/incidentAdded",
                 "body":
 		        {
 		            "items":
@@ -27,7 +27,7 @@
         [
             {
 		        "method": "POST",
-                "url": "http://localhost:5000/incidentUpdated",
+                "url": "http://0.0.0.0:5000/incidentUpdated",
                 "body":
 		        {
 		            "items":
@@ -44,7 +44,7 @@
         [
             {
 		        "method": "POST",
-                "url": "http://localhost:5000/incidentAttached",
+                "url": "http://0.0.0.0:5000/incidentAttached",
                 "body":
 		        {
 		            "items":

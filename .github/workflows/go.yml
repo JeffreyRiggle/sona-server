@@ -58,7 +58,7 @@ jobs:
           go build -v .
           docker build . -t sona:test
           config=`cat ../test/RuntimeConfig.json`
-          docker run -e CONFIG="$config" -p 8080:8080 sona:test
+          docker run -i -e CONFIG="$config" -p 8080:8080 sona:test &
         working-directory: ./src
     
       - name: Install node

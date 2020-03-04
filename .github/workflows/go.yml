@@ -58,13 +58,14 @@ jobs:
           go build -v .
           docker build . -t sona:test
           config=`cat ../test/RuntimeConfig.json`
+          docker network create mynet
           docker run -i -e CONFIG="$config" -p 8080:8080 sona:test &
         working-directory: ./src
 
       - name: Start web hook server
         run: |
           docker build . -t webhook:tester
-          docker run -i -p 5000:5000 webhook:tester &
+          docker run -i -p 5000:5000 --name hookservice webhook:tester &
         working-directory: ./test/webhooktester
           
       - name: Install python

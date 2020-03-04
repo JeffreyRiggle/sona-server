@@ -5,6 +5,6 @@ RUN apt-get update
 COPY ./src /
 COPY start.sh /
 
-ENTRYPOINT [ "/start.sh" ]
+RUN [ "chmod", "+x", "/start.sh" ]
 
 EXPOSE 8080

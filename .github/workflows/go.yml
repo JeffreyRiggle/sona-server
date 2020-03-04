@@ -60,16 +60,11 @@ jobs:
           config=`cat ../test/RuntimeConfig.json`
           docker run -i -e CONFIG="$config" -p 8080:8080 sona:test &
         working-directory: ./src
-    
-      - name: Install node
-        uses: actions/setup-node@v1
-        with:
-          node-version: '10.x'
 
       - name: Start web hook server
         run: |
-          npm install
-          npm run start &
+          docker build . -t webhook:tester
+          docker run -i -p 5000:5000 webhook:tester &
         working-directory: ./test/webhooktester
           
       - name: Install python

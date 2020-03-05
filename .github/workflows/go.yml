@@ -59,7 +59,7 @@ jobs:
           docker build . -t sona-server:"$GITHUB_SHA"
           config=`cat ../test/RuntimeConfig.json`
           docker network create mynet
-          docker run -i -e CONFIG="$config" -p 8080:8080 --network mynet sona:test &
+          docker run -i -e CONFIG="$config" -p 8080:8080 --network mynet sona-server:"$GITHUB_SHA" &
         working-directory: ./src
 
       - name: Start web hook server

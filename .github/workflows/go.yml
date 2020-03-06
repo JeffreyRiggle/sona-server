@@ -56,10 +56,10 @@ jobs:
       - name: Start
         run: |
           go build -v .
-          docker build . -t sona:test
+          docker build . -t jeffriggle/sona-server:"$GITHUB_SHA"
           config=`cat ../test/RuntimeConfig.json`
           docker network create mynet
-          docker run -i -e CONFIG="$config" -p 8080:8080 --network mynet sona:test &
+          docker run -i -e CONFIG="$config" -p 8080:8080 --network mynet jeffriggle/sona-server:"$GITHUB_SHA" &
         working-directory: ./src
 
       - name: Start web hook server
@@ -81,3 +81,12 @@ jobs:
       - name: Run E2E Tests
         run: python apitest.py
         working-directory: ./test
+
+      - name: Publish
+        env:
+          dockerpassword: ${{ secrets.DOCKER }}
+          dockeruser: ${{ secrets.DOCKERUSER }}
+        run: |
+          docker login -p $dockerpassword -u $dockeruser
+          docker push jeffriggle/sona-server:"$GITHUB_SHA"
+

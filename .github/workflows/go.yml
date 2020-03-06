@@ -56,10 +56,10 @@ jobs:
       - name: Start
         run: |
           go build -v .
-          docker build . -t sona-server:"$GITHUB_SHA"
+          docker build . -t jeffriggle/sona-server:"$GITHUB_SHA"
           config=`cat ../test/RuntimeConfig.json`
           docker network create mynet
-          docker run -i -e CONFIG="$config" -p 8080:8080 --network mynet sona-server:"$GITHUB_SHA" &
+          docker run -i -e CONFIG="$config" -p 8080:8080 --network mynet jeffriggle/sona-server:"$GITHUB_SHA" &
         working-directory: ./src
 
       - name: Start web hook server
@@ -88,5 +88,5 @@ jobs:
           dockeruser: ${{ secrets.DOCKERUSER }}
         run: |
           docker login -p $dockerpassword -u $dockeruser
-          docker push sona-server:"$GITHUB_SHA"
+          docker push jeffriggle/sona-server:"$GITHUB_SHA"
 

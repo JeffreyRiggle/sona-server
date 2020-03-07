@@ -57,6 +57,7 @@ jobs:
         run: |
           go build -v .
           docker build . -t jeffriggle/sona-server:"$GITHUB_SHA"
+          echo $BRANCH
           if ["$BRANCH" == "master"]; then
             docker build . -t jeffriggle/sona-server:latest
           else

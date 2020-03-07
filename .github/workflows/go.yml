@@ -55,13 +55,13 @@ jobs:
 
       - name: Start
         run: |
+          local BRANCH=$(echo ${GITHUB_REF} | sed -e "s/refs\/heads\///g" | sed -e "s/\//-/g")
           go build -v .
           docker build . -t jeffriggle/sona-server:"$GITHUB_SHA"
-          echo $BRANCH
-          if ["$BRANCH" == "master"]; then
+          if ["${BRANCH}" == "master"]; then
             docker build . -t jeffriggle/sona-server:latest
           else
-            docker build . -t jeffriggle/sona-server:"$BRANCH"
+            docker build . -t jeffriggle/sona-server:"${BRANCH}"
           fi
           config=`cat ../test/RuntimeConfig.json`
           docker network create mynet
@@ -93,12 +93,13 @@ jobs:
           dockerpassword: ${{ secrets.DOCKER }}
           dockeruser: ${{ secrets.DOCKERUSER }}
         run: |
+          local BRANCH=$(echo ${GITHUB_REF} | sed -e "s/refs\/heads\///g" | sed -e "s/\//-/g")
           docker login -p $dockerpassword -u $dockeruser
           docker push jeffriggle/sona-server:"$GITHUB_SHA"
 
-          if ["$BRANCH" == "master"]; then
+          if ["${BRANCH}" == "master"]; then
             docker push jeffriggle/sona-server:latest
           else
-            docker push jeffriggle/sona-server:"$BRANCH"
+            docker push jeffriggle/sona-server:"${BRANCH}"
           fi
 

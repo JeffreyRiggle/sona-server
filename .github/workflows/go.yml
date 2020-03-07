@@ -57,6 +57,11 @@ jobs:
         run: |
           go build -v .
           docker build . -t jeffriggle/sona-server:"$GITHUB_SHA"
+          if ["$BRANCH" == "master"]; then
+            docker build . -t jeffriggle/sona-server:latest
+          else
+            docker build . -t jeffriggle/sona-server:"$BRANCH"
+          fi
           config=`cat ../test/RuntimeConfig.json`
           docker network create mynet
           docker run -i -e CONFIG="$config" -p 8080:8080 --network mynet jeffriggle/sona-server:"$GITHUB_SHA" &
@@ -89,4 +94,10 @@ jobs:
         run: |
           docker login -p $dockerpassword -u $dockeruser
           docker push jeffriggle/sona-server:"$GITHUB_SHA"
+
+          if ["$BRANCH" == "master"]; then
+            docker push jeffriggle/sona-server:latest
+          else
+            docker push jeffriggle/sona-server:"$BRANCH"
+          fi
 

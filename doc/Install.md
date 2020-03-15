@@ -40,14 +40,14 @@ docker run -i -e CONFIG="$config" -p 8080:8080 jeffriggle/sona-server:master
 
 ## Build and Run
 
-### Bash
+### Bash (Linux and Mac)
 Building the server. In order to do this your machine will need git and golang installed on it. Once this is done you can clone this repo and build src. For an example of creating the binary yourself see [install.sh](../deploy/install.sh)
 
 To run the server simply run the executable with a configuration file.
 
 `/src ./Config.json`
 
-### Windows
+### Powershell (Windows)
 Building the server. In order to do this your machine will need git and golang installed on it. Once this is done you can clone this repo and build src. For an example of creating the binary yourself see [install.ps1](../deploy/install.ps1)
 
 To run the server simply run the executable with a configuration file.

@@ -15,6 +15,15 @@ type Config struct {
 	Logging         LogConfig              `json:"logging"`
 	User            UserConfig             `json:"userconfig"`
 	Admin           AdminConfig            `json:"adminConfig"`
+	Security        SecurityConfig         `json:"securityConfig"`
+}
+
+// SecurityConfig defines the security to use at runtime.
+// The Certificate is the text content to be used as a certificate.
+// The Key is the key assoiciated with the certificate.
+type SecurityConfig struct {
+	Certificate string `json:"cert"`
+	Key         string `json:"key"`
 }
 
 // AdminConfig defines the admin user to setup.

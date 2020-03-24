@@ -30,30 +30,38 @@ func main() {
 	} else {
 		path = ""
 	}
-	initialize(path)
+	config := initialize(path)
 	defer incidentManager.CleanUp()
+	startListening(config)
+}
 
+func startListening(config Config) {
 	router := NewRouter()
 
 	headersOk := handlers.AllowedHeaders([]string{"X-Requested-With", "Content-Type"})
 	originsOk := handlers.AllowedOrigins([]string{"*"})
 	methodsOk := handlers.AllowedMethods([]string{"GET", "HEAD", "POST", "PUT", "OPTIONS"})
 
-	log.Fatal(http.ListenAndServe(":8080", handlers.CORS(originsOk, headersOk, methodsOk)(router)))
+	handler := handlers.CORS(originsOk, headersOk, methodsOk)(router)
+	if len(config.Security.Certificate) <= 0 || len(config.Security.Key) <= 0 {
+		log.Fatal(http.ListenAndServe(":8080", handler))
+	} else {
+		log.Fatal(http.ListenAndServeTLS(":8080", config.Security.Certificate, config.Security.Key, handler))
+	}
 }
 
-func initialize(file string) {
+func initialize(file string) Config {
 	if len(file) <= 0 {
 		log.Println("No config provided using default settings")
 		useDefaultConfig()
-		return
+		return Config{}
 	}
 
 	log.Printf("Loading config from %v\n", file)
-	loadConfig(file)
+	return loadConfig(file)
 }
 
-func loadConfig(file string) {
+func loadConfig(file string) Config {
 	var config Config
 	configFile, err := os.Open(file)
 	defer configFile.Close()
@@ -61,7 +69,7 @@ func loadConfig(file string) {
 	if err != nil {
 		log.Println("Unable to load config file using defaults")
 		useDefaultConfig()
-		return
+		return Config{}
 	}
 
 	parser := json.NewDecoder(configFile)
@@ -80,6 +88,8 @@ func loadConfig(file string) {
 		config.Hooks.AddedUserHooks,
 		config.Hooks.UpdatedUserHooks,
 	}
+
+	return config
 }
 
 func useDefaultConfig() {

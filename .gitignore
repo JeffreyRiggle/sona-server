@@ -18,3 +18,7 @@
 src/creds.json
 
 **/node_modules/
+
+# Self-Signed certificate
+server.crt
+server.key

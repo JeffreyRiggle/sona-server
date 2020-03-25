@@ -1,4 +1,4 @@
 #!/bin/bash
 
-echo $CONFIG > start.json
-/src start.json
+echo $CONFIG > app/start.json
+app/src app/start.json

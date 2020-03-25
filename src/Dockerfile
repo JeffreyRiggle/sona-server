@@ -8,7 +8,7 @@ RUN groupadd -r sona && useradd -r -s /bin/false -g sona sonauser
 COPY ./src /app
 COPY start.sh /app
 
-RUN chown -R sonauser:sona /app
+RUN chown -R sonauser:sona /app/*
 
 USER sonauser
 ENTRYPOINT [ "/app/start.sh" ]

@@ -30,7 +30,10 @@ func main() {
 	} else {
 		path = ""
 	}
-	config := initialize(path)
+
+	config := processConfig(path)
+	initialize(config)
+
 	defer incidentManager.CleanUp()
 	startListening(config)
 }
@@ -50,32 +53,53 @@ func startListening(config Config) {
 	}
 }
 
-func initialize(file string) Config {
+func processConfig(file string) Config {
 	if len(file) <= 0 {
-		log.Println("No config provided using default settings")
-		useDefaultConfig()
-		return Config{}
+		return createDefaultConfig()
 	}
 
 	log.Printf("Loading config from %v\n", file)
-	return loadConfig(file)
-}
-
-func loadConfig(file string) Config {
 	var config Config
 	configFile, err := os.Open(file)
 	defer configFile.Close()
 
 	if err != nil {
 		log.Println("Unable to load config file using defaults")
-		useDefaultConfig()
-		return Config{}
+		return createDefaultConfig()
 	}
 
 	parser := json.NewDecoder(configFile)
 	parser.Decode(&config)
 
 	log.Printf("Loaded config %v\n", config)
+	return config
+}
+
+func createDefaultConfig() Config {
+	currentUser, err := user.Current()
+	if err != nil {
+		log.Fatal("Unable to find current user")
+		panic(err)
+	}
+
+	return Config{
+		Logging: LogConfig{
+			Path:    currentUser.HomeDir,
+			Enabled: true,
+		},
+		FileManagerType: 0,
+		LocalFileConfig: LocalFileManagerConfig{
+			Path: currentUser.HomeDir,
+		},
+		ManagerType: 0,
+		Admin: AdminConfig{
+			EmailAddress: "a@b.c",
+			Password:     "admin",
+		},
+	}
+}
+
+func initialize(config Config) {
 	setupAdmin(config)
 	setupLogManager(config)
 	setupFileManager(config)
@@ -88,24 +112,6 @@ func loadConfig(file string) Config {
 		config.Hooks.AddedUserHooks,
 		config.Hooks.UpdatedUserHooks,
 	}
-
-	return config
-}
-
-func useDefaultConfig() {
-	currentUser, err := user.Current()
-	if err != nil {
-		log.Fatal("Unable to find current user")
-		panic(err)
-	}
-
-	logManager = LogManager{currentUser.HomeDir, true}
-	logManager.Initialize()
-	fileManager = LocalFileManager{currentUser.HomeDir}
-	incidentManager = RuntimeIncidentManager{make(map[int64]*Incident), make(map[int][]Attachment)}
-	userManager = RuntimeUserManager{make(map[int64]*User), make(map[int64]string), make(map[int64][]string), make([]string, 1)}
-	_, res := userManager.AddUser(&admin)
-	userManager.SetPermissions(res.Id, adminPermissions)
 }
 
 func setupAdmin(config Config) {

@@ -3,7 +3,9 @@
 *.dll
 *.so
 *.dylib
-src
+
+# Example Config
+TestConfig.json
 
 # Test binary, build with `go test -c`
 *.test

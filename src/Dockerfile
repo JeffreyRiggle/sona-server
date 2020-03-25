@@ -2,11 +2,15 @@ FROM ubuntu:latest
 
 RUN apt-get update
 
-COPY ./src /
-COPY start.sh /
+RUN mkdir /app
 
-RUN [ "chmod", "+x", "/start.sh" ]
+RUN groupadd -r sona && useradd -r -s /bin/false -g sona soanuser
+COPY ./src /app
+COPY start.sh /app
 
-ENTRYPOINT [ "/start.sh" ]
+RUN chown -R sona:sonauser /app
+
+USER sonauser
+ENTRYPOINT [ "/app/start.sh" ]
 
 EXPOSE 8080

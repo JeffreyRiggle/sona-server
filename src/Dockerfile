@@ -9,8 +9,9 @@ COPY ./src /app
 COPY start.sh /app
 
 RUN chown -R sona:sona /app
+RUN [ "chmod", "+x", "app/start.sh" ]
 
 USER sona
-ENTRYPOINT [ "/app/start.sh" ]
+ENTRYPOINT [ "app/start.sh" ]
 
 EXPOSE 8080

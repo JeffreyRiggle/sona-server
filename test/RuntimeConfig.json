@@ -5,6 +5,9 @@
     },
     "managertype": 0,
     "filemanagertype": 0,
+    "fileconfig": {
+        "path": "app/attachments"
+    },
     "webhooks": {
         "addedhooks":
         [

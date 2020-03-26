@@ -9,6 +9,8 @@ COPY ./src /app
 COPY start.sh /app
 
 RUN chown -R sona:sona /app
+RUN chown -R sona:sona $HOME
+
 RUN [ "chmod", "+x", "app/start.sh" ]
 
 USER sona

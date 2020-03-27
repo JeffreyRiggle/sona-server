@@ -2,7 +2,6 @@
 
 echo $CONFIG > app/start.json
 
-echo "Finding cert"
 jq .securityConfig.cert app/start.json | cut -d "\"" -f 2 > app/temp
 
 if [ -s app/temp ]
@@ -11,12 +10,10 @@ then
     base64 -d app/temp > app/server.cert
     jq '.securityConfig.cert="app/server.cert"' app/start.json > app/temp
     echo `cat app/temp` > app/start.json
-    echo `cat app/start.json`
 else
     echo "No certificate provided"
 fi
 
-echo "Finding key"
 jq .securityConfig.key app/start.json | cut -d "\"" -f 2 > app/temp
 
 if [ -s app/temp ]

@@ -1,6 +1,7 @@
 FROM ubuntu:latest
 
 RUN apt-get update
+RUN apt-get install jq -y
 
 RUN mkdir /app
 

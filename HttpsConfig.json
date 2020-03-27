@@ -1,0 +1,68 @@
+{
+    "adminConfig": {
+        "emailAddress": "something@somewhere.com",
+        "password": "itsasecret"
+    },
+    "managertype": 0,
+    "filemanagertype": 0,
+    "securityConfig": {
+        "cert": "LS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0tCk1JSURaVENDQWsyZ0F3SUJBZ0lVYzBac1hrRGc0YUE1ZmFhWjVTdU8wbVdOMTJnd0RRWUpLb1pJaHZjTkFRRUwKQlFBd1FqRUxNQWtHQTFVRUJoTUNWVk14RURBT0JnTlZCQWdNQjBsdVpHbGhibUV4SVRBZkJnTlZCQW9NR0VsdQpkR1Z5Ym1WMElGZHBaR2RwZEhNZ1VIUjVJRXgwWkRBZUZ3MHlNREF6TWpReE1EVXlOREZhRncwek1EQXpNakl4Ck1EVXlOREZhTUVJeEN6QUpCZ05WQkFZVEFsVlRNUkF3RGdZRFZRUUlEQWRKYm1ScFlXNWhNU0V3SHdZRFZRUUsKREJoSmJuUmxjbTVsZENCWGFXUm5hWFJ6SUZCMGVTQk1kR1F3Z2dFaU1BMEdDU3FHU0liM0RRRUJBUVVBQTRJQgpEd0F3Z2dFS0FvSUJBUUNvVXlveGNjTW9YL3J5anVzZHZtWXdmaGlIa0NkcFZLd1NYMzhUWllwQTI0YThOWG4yCnRRT0paanlNVkliSi8zOFZwZ2QxM1h3cWZaRnZNbmRKZTMvTEhrM1FweWZnbVljVEtXR1oyU2tGSmRaR3l1bFUKU25CTWN3THduTU5qOGVuM2tBN1h6dUpWS0xzSkR5WWdsc2pIdWJzSVVxa09UM05XSTFNMU5Cb3dXRml4STJQcQp5NXZlcnF1a1phYTZyd2hDR1dlOWdpdWhzaytEVGhuNnZITlIvSVRzWE5DQm1CVjNCUmVNNDVodWVLZlYrcFd0ClhEWkNDSzI4dVVqYkxGOXRjSzZ4dUt2SVliRzV6VGtBdjFsRnZnRlNVR0tNRTMydUp3K2IwNCswQXI3K3kvSkUKUENJaSt5Q2xFQlljZ2s2MEpMSDg3ZTVvZ0ViT3FXaEFZd1FOQWdNQkFBR2pVekJSTUIwR0ExVWREZ1FXQkJTWApkKy9RQld4R3hKMXdpdzJGY0JVUjl2bjR4REFmQmdOVkhTTUVHREFXZ0JTWGQrL1FCV3hHeEoxd2l3MkZjQlVSCjl2bjR4REFQQmdOVkhSTUJBZjhFQlRBREFRSC9NQTBHQ1NxR1NJYjNEUUVCQ3dVQUE0SUJBUUNHQnRycktXTGgKUGxISjFONDdxMWIzNHNmZitRTGdLd044UHcvVU5UMGFuYTA2MmNaRG1BVlZnemQ0c1I2cTd3alR2UTYyT2RjRQpleXVIQlBnRUc4MUV0YUJkakpoNzlVVW05RGVCNThBSU8rY0hHSW5jN1V1ZjRiZk84QzI3VWYyOFVDMTFaZDFoCmVlLzNLSGZMb1A4MFQ5SmdlekJNa0hLZS9WUVRBeUliTWhOczFjYU9SWmRab1lLNUNNYUtWa1kwMVVOM2x5M2kKOXl4K3Z3enBoM3ZaMkF5NU1rQ3FseXl3bWFrOUdYb1lRRnRuVWlnWC9yeVh3TmRiU1J5bTBjNlB2cnBLS081ZQpFemFzZXFTc0pYVCt5REFjc3UzRmJCNGYwblprL1dtN2c0b1FEaFlwWFVESzY4dGhtR3gxOEtyVGpsVEwxR0JYClBybTVoQXhFcndtYgotLS0tLUVORCBDRVJUSUZJQ0FURS0tLS0tCg==",
+        "key": "LS0tLS1CRUdJTiBQUklWQVRFIEtFWS0tLS0tCk1JSUV2Z0lCQURBTkJna3Foa2lHOXcwQkFRRUZBQVNDQktnd2dnU2tBZ0VBQW9JQkFRQ29VeW94Y2NNb1gvcnkKanVzZHZtWXdmaGlIa0NkcFZLd1NYMzhUWllwQTI0YThOWG4ydFFPSlpqeU1WSWJKLzM4VnBnZDEzWHdxZlpGdgpNbmRKZTMvTEhrM1FweWZnbVljVEtXR1oyU2tGSmRaR3l1bFVTbkJNY3dMd25NTmo4ZW4za0E3WHp1SlZLTHNKCkR5WWdsc2pIdWJzSVVxa09UM05XSTFNMU5Cb3dXRml4STJQcXk1dmVycXVrWmFhNnJ3aENHV2U5Z2l1aHNrK0QKVGhuNnZITlIvSVRzWE5DQm1CVjNCUmVNNDVodWVLZlYrcFd0WERaQ0NLMjh1VWpiTEY5dGNLNnh1S3ZJWWJHNQp6VGtBdjFsRnZnRlNVR0tNRTMydUp3K2IwNCswQXI3K3kvSkVQQ0lpK3lDbEVCWWNnazYwSkxIODdlNW9nRWJPCnFXaEFZd1FOQWdNQkFBRUNnZ0VCQUo2WWhWZkMvWU5zTTdFWkVkU2JrZ004dS9YMnovdUJpUU5pc1FQZ2wwd1cKeXpOSUc1dGs0R2swUi9aY3FnZG5VU0ZmcHdYWjR1VFNIUmF0Y1JGdWFIRkVJME5tUzc5bVNJdTRZTHFwanVuSAp4Y1k3NTI3QkdHQWZ1WFJsNy8rYWJyMFFJYndhdE14U0xUQVM4dlNmdlp2WmxxejMzVXViZG11QnF5T2s3TXdBCjJYZDA3bkU4dGh4ZU5wYVNhcDVEM2tqN05hblRnQ3RRc2h1b1BqdXZoM1BheW56blJoVWlCSFIyMzNNK1ZRa2EKcWNHTURMZlBPUXVvTk9udUE2MHdBRFZlTVhyckJaVFByd09lMlN5UWpOTDhnYjN6T3JWdHBTLzlZWm1wR25YeQpOTjFxd1JJM2pSTFhBaHNzTmdjdHVhR0hoUkVId2YweTdHNWg2NVlqT01FQ2dZRUE0QWlJN3Znck1vaXJ0K0hUCi9rcEd6eVRnQUNHN1c3aitGeTE4YWZzMGpNUE5EYlNlRmUzNHAxS3RXbW1pREJ5SlUvSGRpQzNjMDg0TkxTQjgKdkk3dG1qdWRGd1JlOXhPYnlSYUV2UEw2cmhhVWtOWE5WRGhVS1lsc1ZJZmRLR3ptV0hRa0RDSEtRVWJXMUFKeQpHT0lqazlLYnJWYVNlSEJzclRKTDR0Wm9mcjBDZ1lFQXdGZTNnY2xpSmUzSHZOaHZHZytHa29UeE5QRTgzMkMzCnRwWVlLSlZyY0dLNFBCaDFJZUZpcTc0ZU5Cc0hDb3pRcEJVdEJvUmVna1MvZzZMY29MK1JDY2tmVGRQSHNUdU8KZmdvU0tKNFYwa2tNQnFWY1hENjZBKzEybk5GSFBnQjN0WE5VTkpIQjVsS084MkVUR243d1Q2WCtEVlZCN2tqegpDVVBBVGJzMVY1RUNnWUJPVWMyRk5VN3NzS2pQZE94R3ByTFFjY1M1WnhGM3hGbFh3dmdPbU5wTEo1eEU0Vkt1CnVlM0dtUG12ZE9SSXRhVXdxb3BXdENuU0JlUEhWZWNsaUJYNmFFTEhyQ2lDMmVFSlVJMEEvVFN6cllNc2l3SG8KSW5VUnZGQVowUkY0czNGbmxOcVJQekxVMVMzL0dnZkhPUzlVMnppL1JWZVpNVHhjNUF0eGRxRTdSUUtCZ0VFLwpnR2p1di9UTjdPd0xIK1ZmVHU5MVdiM3orQXB1N09OcmwxWnRHYjFPUCtGakNwa3J0Q1Urb1ZCYnVzL0JaU1hFCmFUbkV2YXJEVjVSNE13LzA3R2E5YTNralZxS3c2VzJvVFBDcWNBeWQ2dzUyR2hiUTBKbDBmTUJGM2owU080bTYKVGQ1bmM3ZUdXaWdGemswMnNwN1NXSlI5VDVoZDl0UTF2NDZlNjBHQkFvR0JBSzNtaHUzS1FZaU1KQVJyeGJhZQpLNld5clJGQ1NKaDg3cXo1TzFMZnhQeUhoQWxsVWQ5Zy9KSDg2VUF3MUpXU0lYeTR4OXczSWxzdWM2dnR5dlFBCjZ1a2thdG55R2IrVlJtZytjTUZ5ZXQwdUVkbWkxclFxVjAxQjNkVWtCL1Y1cnlWWk9PWmRVN0FnMEZEdWI2UzgKKzR6WGwrdzhPZ3hCUlZ6WUdUZlh5K0FoCi0tLS0tRU5EIFBSSVZBVEUgS0VZLS0tLS0K"
+    },
+    "webhooks": {
+        "addedhooks":
+        [
+            {
+		        "method": "POST",
+                "url": "http://hookservice:5000/incidentAdded",
+                "body":
+		        {
+		            "items":
+		            [
+		                {"key": "incident", "value": "id", "substitute": true},
+		                {"key": "subject", "value": "Incident Created", "substitute": false},
+                        {"key": "body", "value": "New Incident Created by {{reporter}} with description {{description}}.", "substitute": true},
+                        {"key": "to", "value": "foobar@email.com", "substitute": false}
+		            ]
+		        }
+            }
+        ],
+        "updatedhooks": 
+        [
+            {
+		        "method": "POST",
+                "url": "http://hookservice:5000/incidentUpdated",
+                "body":
+		        {
+		            "items":
+		            [
+		                {"key": "incident", "value": "id", "substitute": true},
+		                {"key": "subject", "value": "Incident Updated", "substitute": false},
+                        {"key": "body", "value": "Incident {{id}} updated with description {{description}} and state {{state}}.", "substitute": true},
+                        {"key": "to", "value": "foobar@email.com", "substitute": false}
+		            ]
+		        }
+            }
+        ],
+        "attachedhooks": 
+        [
+            {
+		        "method": "POST",
+                "url": "http://hookservice:5000/incidentAttached",
+                "body":
+		        {
+		            "items":
+		            [
+		                {"key": "incident", "value": "id", "substitute": true},
+		                {"key": "subject", "value": "Attachment added", "substitute": false},
+                        {"key": "body", "value": "{{filename}} Has been attached to Incident {{id}}", "substitute": true},
+                        {"key": "to", "value": "foobar@email.com", "substitute": false}
+		            ]
+		        }
+            }
+        ]
+    },
+    "logging": {
+        "enabled": false
+    }
+}

@@ -2,7 +2,8 @@
 
 echo $CONFIG > app/start.json
 
-jq .securityConfig.cert app/start.json | cut -d "\"" -f 2 > app/temp
+jq .securityConfig.cert app/start.json | cut -d "\"" -f 2 | tr -d '[:space:]' > app/temp
+sed -i 's/null//g' app/temp
 
 if [ -s app/temp ]
 then
@@ -14,7 +15,8 @@ else
     echo "No certificate provided"
 fi
 
-jq .securityConfig.key app/start.json | cut -d "\"" -f 2 > app/temp
+jq .securityConfig.key app/start.json | cut -d "\"" -f 2 | tr -d '[:space:]' > app/temp
+sed -i 's/null//g' app/temp
 
 if [ -s app/temp ]
 then

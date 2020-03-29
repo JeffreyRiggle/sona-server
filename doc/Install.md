@@ -25,6 +25,7 @@ For more information on generating a configuration file see the following resour
 * [Configure Incident Manager](./ConfigureIncidentManager.md)
 * [Configure Logging](./ConfigureLogging.md)
 * [Configure Web Hooks](./ConfigureWebHooks.md)
+* [Configure Security](./ConfigureSecurity.md)
 
 ## Docker
 The easiest way to get up and running is to simply download the docker image and start it with your configuration file.

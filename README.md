@@ -41,6 +41,3 @@ Sona is recommneded for anyone who wants a free easy to deploy incident tracking
 Sona offers a couple of configuration options for the application at runtime. In order to run with a configuration run src with the file (inculding path) as a command argument.
 
 Some configuration options to consider would be the incidentmanagertype and filemanagertype. For more information on these configurations see configuration.go
-
-# Note
-Certificate, key and HttpsConfig.json are throw away certs to proof of concept https traffic.

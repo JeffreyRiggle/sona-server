@@ -11,7 +11,7 @@ import (
 
 type TokenResponse struct {
 	Token  string `json:"token"`
-	UserId int64  `json""userId"`
+	UserId int64  `json:"userId"`
 }
 
 func GenerateToken(user User) TokenResponse {

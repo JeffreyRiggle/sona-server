@@ -3,7 +3,9 @@
 *.dll
 *.so
 *.dylib
-/src/src
+
+# Example Config
+TestConfig.json
 
 # Test binary, build with `go test -c`
 *.test
@@ -15,9 +17,10 @@
 .glide/
 
 * GoogleCloud creds
-src/creds.json
+creds.json
 
 **/node_modules/
 
-# not ready for this
-/examples
+# Self-Signed certificate
+server.crt
+server.key

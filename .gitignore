@@ -21,3 +21,4 @@ src/creds.json
 
 # not ready for this
 /examples
+/deploy/ec2.sh

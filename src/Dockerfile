@@ -5,6 +5,8 @@ RUN apt-get install jq -y
 
 RUN mkdir /app
 
+RUN apk update && apk add ca-certificates && rm -rf /var/cache/apk/*
+
 RUN groupadd -r sona && useradd -r -s /bin/false -g sona sona
 COPY ./src /app
 COPY start.sh /app

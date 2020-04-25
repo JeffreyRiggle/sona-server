@@ -2,10 +2,10 @@ FROM ubuntu:latest
 
 RUN apt-get update
 RUN apt-get install jq -y
+RUN apt-get install ca-certificates && rm -rf /var/cache/apk/*
 
 RUN mkdir /app
 
-RUN apk update && apk add ca-certificates && rm -rf /var/cache/apk/*
 
 RUN groupadd -r sona && useradd -r -s /bin/false -g sona sona
 COPY ./src /app

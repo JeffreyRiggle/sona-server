@@ -187,6 +187,16 @@ func setupManagers(config Config) {
 	panic(fmt.Sprintf("Invalid manager config %v", config.ManagerType))
 }
 
+func ensureAdminAccount() {
+	_, found := userManager.GetUser(1)
+
+	if !found {
+		log.Println("No administrator found creating admin account")
+		_, res := userManager.AddUser(&admin)
+		userManager.SetPermissions(res.Id, adminPermissions)
+	}
+}
+
 func setupDynamoDBManagers(config Config) {
 	if len(config.DynamoConfig.Region) <= 0 {
 		panic("No configured region")
@@ -234,6 +244,8 @@ func setupDynamoDBManagers(config Config) {
 	}
 	udbManager.Initialize()
 	userManager = &udbManager
+
+	ensureAdminAccount()
 }
 
 func setupMySQLIncidentManager(config Config, db *sql.DB) {
@@ -263,11 +275,5 @@ func setupSQLUsermanager(config Config, db *sql.DB) {
 	usrMySQLManager.Initialize()
 
 	userManager = usrMySQLManager
-	_, found := userManager.GetUser(1)
-
-	if !found {
-		log.Println("No administrator found creating admin account")
-		_, res := userManager.AddUser(&admin)
-		userManager.SetPermissions(res.Id, adminPermissions)
-	}
+	ensureAdminAccount()
 }

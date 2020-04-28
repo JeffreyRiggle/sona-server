@@ -187,8 +187,8 @@ func setupManagers(config Config) {
 	panic(fmt.Sprintf("Invalid manager config %v", config.ManagerType))
 }
 
-func ensureAdminAccount() {
-	_, found := userManager.GetUser(1)
+func ensureAdminAccount(startIndex int64) {
+	_, found := userManager.GetUser(startIndex)
 
 	if !found {
 		log.Println("No administrator found creating admin account")
@@ -245,7 +245,7 @@ func setupDynamoDBManagers(config Config) {
 	udbManager.Initialize()
 	userManager = &udbManager
 
-	ensureAdminAccount()
+	ensureAdminAccount(0)
 }
 
 func setupMySQLIncidentManager(config Config, db *sql.DB) {
@@ -275,5 +275,5 @@ func setupSQLUsermanager(config Config, db *sql.DB) {
 	usrMySQLManager.Initialize()
 
 	userManager = usrMySQLManager
-	ensureAdminAccount()
+	ensureAdminAccount(1)
 }

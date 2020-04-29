@@ -229,11 +229,11 @@ func (manager DynamoDBUserManager) GetUserByEmail(emailAddress string) (User, bo
 	input := &dynamodb.ScanInput{
 		ExpressionAttributeValues: map[string]*dynamodb.AttributeValue{
 			":v1": {
-				N: aws.String(emailAddress),
+				S: aws.String(emailAddress),
 			},
 		},
 		FilterExpression: aws.String("emailAddress = :v1"),
-		TableName:              aws.String(*manager.UsersTable),
+		TableName:        aws.String(*manager.UsersTable),
 	}
 
 	usr, pass := manager.getUserFromDataBaseImpl(input)

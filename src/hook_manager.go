@@ -78,7 +78,9 @@ func preformAddedSubsitutions(hook WebHook, incident Incident) *bytes.Buffer {
 	}
 
 	b := new(bytes.Buffer)
-	json.NewEncoder(b).Encode(bod)
+	encoder := json.NewEncoder(b)
+	encoder.SetEscapeHTML(false)
+	encoder.Encode(bod)
 	return b
 }
 
@@ -251,9 +253,15 @@ func fireHook(hook WebHook, body *bytes.Buffer) {
 		logManager.LogPrintf("Failure creating webhook %v: %v\n", hook, err)
 	}
 
-	_, err2 := client.Do(req)
+	res, err2 := client.Do(req)
 
 	if err2 != nil {
-		logManager.LogPrintf("Unable failure using webhook %v: %v\n", hook, err)
+		logManager.LogPrintf("Failure using webhook %v: %v\n", hook, err)
 	}
+
+	defer res.Body.Close()
+
+	buf := new(bytes.Buffer)
+	buf.ReadFrom(res.Body)
+	logManager.LogPrintf("Got result %v\n", buf.String())
 }

@@ -8,7 +8,7 @@ RUN mkdir /app
 
 
 RUN groupadd -r sona && useradd -r -s /bin/false -g sona sona
-COPY ./src /app
+COPY ./sona-server /app
 COPY start.sh /app
 
 RUN chown -R sona:sona /app

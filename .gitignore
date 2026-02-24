@@ -4,6 +4,7 @@
 *.so
 *.dylib
 /src/src
+/src/sona-server
 
 # Test binary, build with `go test -c`
 *.test

@@ -29,4 +29,4 @@ else
 fi
 
 rm app/temp
-app/src app/start.json
+app/sona-server app/start.json

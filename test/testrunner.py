@@ -21,7 +21,7 @@ def run():
             t.get("test")()
             passed = passed + 1
             print(t.get("message") + " PASSED in " + str(time.time() - start))
-        except Exception, e:
+        except Exception as e:
             failed = failed + 1
             print(t.get("message") + " FAILED with " + str(e))
     

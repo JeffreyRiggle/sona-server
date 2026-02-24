@@ -57,9 +57,9 @@ jobs:
         working-directory: ./test/webhooktester
           
       - name: Install python
-        uses: actions/setup-python@v1
+        uses: actions/setup-python@v6
         with:
-          python-version: '2.x'
+          python-version: '3.13'
       
       - name: Install dependencies
         run: |
